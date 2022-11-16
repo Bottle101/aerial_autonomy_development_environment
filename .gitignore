@@ -9,3 +9,19 @@ install
 *~
 
 .DS_Store
+
+src/vehicle_simulator/mesh/*
+
+!src/vehicle_simulator/mesh/matterport
+
+src/vehicle_simulator/mesh/matterport/meshes/*
+
+src/vehicle_simulator/mesh/matterport/segmentations/*
+
+src/vehicle_simulator/mesh/matterport/preview/*
+
+src/vehicle_simulator/log/*
+
+!download_environments.sh
+
+!readme.txt
