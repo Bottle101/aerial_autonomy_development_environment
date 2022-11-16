@@ -21,7 +21,7 @@
 #include <tf/transform_datatypes.h>
 #include <tf/transform_broadcaster.h>
 
-#include <opencv/cv.h>
+#include <opencv2/opencv.hpp>
 #include <opencv2/highgui/highgui.hpp>
 
 #include <pcl_conversions/pcl_conversions.h>
@@ -35,6 +35,7 @@ using namespace std;
 const double PI = 3.1415926;
 
 bool use_gazebo_time = false;
+double cameraOffsetZ = 0;
 double sensorOffsetX = 0;
 double sensorOffsetY = 0;
 double vehicleHeight = 0.75;
@@ -93,7 +94,7 @@ int odomRecIDPointer = 0;
 
 pcl::VoxelGrid<pcl::PointXYZI> terrainDwzFilter;
 
-ros::Publisher *pubScanPointer = NULL;
+ros::Publisher* pubScanPointer = NULL;
 
 void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
 {
@@ -107,11 +108,13 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
 
   double scanTime = scanIn->header.stamp.toSec();
 
-  if (odomSendIDPointer < 0) {
+  if (odomSendIDPointer < 0)
+  {
     return;
   }
-  while (odomTimeStack[(odomRecIDPointer + 1) % stackNum] < scanTime && 
-         odomRecIDPointer != (odomSendIDPointer + 1) % stackNum) {
+  while (odomTimeStack[(odomRecIDPointer + 1) % stackNum] < scanTime &&
+         odomRecIDPointer != (odomSendIDPointer + 1) % stackNum)
+  {
     odomRecIDPointer = (odomRecIDPointer + 1) % stackNum;
   }
 
@@ -125,7 +128,8 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
   float terrainRecRoll = terrainRoll;
   float terrainRecPitch = terrainPitch;
 
-  if (use_gazebo_time) {
+  if (use_gazebo_time)
+  {
     odomRecTime = odomTimeStack[odomRecIDPointer];
     vehicleRecX = vehicleXStack[odomRecIDPointer];
     vehicleRecY = vehicleYStack[odomRecIDPointer];
@@ -147,7 +151,8 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
   pcl::removeNaNFromPointCloud(*scanData, *scanData, scanInd);
 
   int scanDataSize = scanData->points.size();
-  for (int i = 0; i < scanDataSize; i++) {
+  for (int i = 0; i < scanDataSize; i++)
+  {
     float pointX1 = scanData->points[i].x;
     float pointY1 = scanData->points[i].y * cosTerrainRecRoll - scanData->points[i].z * sinTerrainRecRoll;
     float pointZ1 = scanData->points[i].y * sinTerrainRecRoll + scanData->points[i].z * cosTerrainRecRoll;
@@ -175,7 +180,8 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
 
 void terrainCloudHandler(const sensor_msgs::PointCloud2ConstPtr& terrainCloud2)
 {
-  if (!adjustZ && !adjustIncl) {
+  if (!adjustZ && !adjustIncl)
+  {
     return;
   }
 
@@ -188,29 +194,38 @@ void terrainCloudHandler(const sensor_msgs::PointCloud2ConstPtr& terrainCloud2)
   double elevMean = 0;
   int elevCount = 0;
   bool terrainValid = true;
-  for (int i = 0; i < terrainCloudSize; i++) {
+  for (int i = 0; i < terrainCloudSize; i++)
+  {
     point = terrainCloud->points[i];
 
     float dis = sqrt((point.x - vehicleX) * (point.x - vehicleX) + (point.y - vehicleY) * (point.y - vehicleY));
 
-    if (dis < terrainRadiusZ) {
-      if (point.intensity < groundHeightThre) {
+    if (dis < terrainRadiusZ)
+    {
+      if (point.intensity < groundHeightThre)
+      {
         elevMean += point.z;
         elevCount++;
-      } else {
+      }
+      else
+      {
         terrainValid = false;
       }
     }
 
-    if (dis < terrainRadiusIncl && point.intensity < groundHeightThre) {
+    if (dis < terrainRadiusIncl && point.intensity < groundHeightThre)
+    {
       terrainCloudIncl->push_back(point);
     }
   }
 
-  if (elevCount >= minTerrainPointNumZ) elevMean /= elevCount;
-  else terrainValid = false;
+  if (elevCount >= minTerrainPointNumZ)
+    elevMean /= elevCount;
+  else
+    terrainValid = false;
 
-  if (terrainValid && adjustZ) {
+  if (terrainValid && adjustZ)
+  {
     terrainZ = (1.0 - smoothRateZ) * terrainZ + smoothRateZ * elevMean;
   }
 
@@ -219,7 +234,8 @@ void terrainCloudHandler(const sensor_msgs::PointCloud2ConstPtr& terrainCloud2)
   terrainDwzFilter.filter(*terrainCloudDwz);
   int terrainCloudDwzSize = terrainCloudDwz->points.size();
 
-  if (terrainCloudDwzSize < minTerrainPointNumIncl || !terrainValid) {
+  if (terrainCloudDwzSize < minTerrainPointNumIncl || !terrainValid)
+  {
     return;
   }
 
@@ -233,17 +249,21 @@ void terrainCloudHandler(const sensor_msgs::PointCloud2ConstPtr& terrainCloud2)
   int inlierNum = 0;
   matX.at<float>(0, 0) = terrainPitch;
   matX.at<float>(1, 0) = terrainRoll;
-  for (int iterCount = 0; iterCount < 5; iterCount++) {
+  for (int iterCount = 0; iterCount < 5; iterCount++)
+  {
     int outlierCount = 0;
-    for (int i = 0; i < terrainCloudDwzSize; i++) {
+    for (int i = 0; i < terrainCloudDwzSize; i++)
+    {
       point = terrainCloudDwz->points[i];
 
       matA.at<float>(i, 0) = -point.x + vehicleX;
       matA.at<float>(i, 1) = point.y - vehicleY;
       matB.at<float>(i, 0) = point.z - elevMean;
 
-      if (fabs(matA.at<float>(i, 0) * matX.at<float>(0, 0) + matA.at<float>(i, 1) * matX.at<float>(1, 0) - 
-          matB.at<float>(i, 0)) > InclFittingThre && iterCount > 0) {
+      if (fabs(matA.at<float>(i, 0) * matX.at<float>(0, 0) + matA.at<float>(i, 1) * matX.at<float>(1, 0) -
+               matB.at<float>(i, 0)) > InclFittingThre &&
+          iterCount > 0)
+      {
         matA.at<float>(i, 0) = 0;
         matA.at<float>(i, 1) = 0;
         matB.at<float>(i, 0) = 0;
@@ -256,16 +276,19 @@ void terrainCloudHandler(const sensor_msgs::PointCloud2ConstPtr& terrainCloud2)
     matAtB = matAt * matB;
     cv::solve(matAtA, matAtB, matX, cv::DECOMP_QR);
 
-    if (inlierNum == terrainCloudDwzSize - outlierCount) break;
+    if (inlierNum == terrainCloudDwzSize - outlierCount)
+      break;
     inlierNum = terrainCloudDwzSize - outlierCount;
   }
 
-  if (inlierNum < minTerrainPointNumIncl || fabs(matX.at<float>(0, 0)) > maxIncl * PI / 180.0 || 
-      fabs(matX.at<float>(1, 0)) > maxIncl * PI / 180.0) {
+  if (inlierNum < minTerrainPointNumIncl || fabs(matX.at<float>(0, 0)) > maxIncl * PI / 180.0 ||
+      fabs(matX.at<float>(1, 0)) > maxIncl * PI / 180.0)
+  {
     terrainValid = false;
   }
 
-  if (terrainValid && adjustIncl) {
+  if (terrainValid && adjustIncl)
+  {
     terrainPitch = (1.0 - smoothRateIncl) * terrainPitch + smoothRateIncl * matX.at<float>(0, 0);
     terrainRoll = (1.0 - smoothRateIncl) * terrainRoll + smoothRateIncl * matX.at<float>(1, 0);
   }
@@ -284,10 +307,15 @@ int main(int argc, char** argv)
   ros::NodeHandle nhPrivate = ros::NodeHandle("~");
 
   nhPrivate.getParam("use_gazebo_time", use_gazebo_time);
+  nhPrivate.getParam("cameraOffsetZ", cameraOffsetZ);
   nhPrivate.getParam("sensorOffsetX", sensorOffsetX);
   nhPrivate.getParam("sensorOffsetY", sensorOffsetY);
   nhPrivate.getParam("vehicleHeight", vehicleHeight);
+  nhPrivate.getParam("vehicleX", vehicleX);
+  nhPrivate.getParam("vehicleY", vehicleY);
+  nhPrivate.getParam("vehicleZ", vehicleZ);
   nhPrivate.getParam("terrainZ", terrainZ);
+  nhPrivate.getParam("vehicleYaw", vehicleYaw);
   nhPrivate.getParam("terrainVoxelSize", terrainVoxelSize);
   nhPrivate.getParam("groundHeightThre", groundHeightThre);
   nhPrivate.getParam("adjustZ", adjustZ);
@@ -299,16 +327,13 @@ int main(int argc, char** argv)
   nhPrivate.getParam("InclFittingThre", InclFittingThre);
   nhPrivate.getParam("maxIncl", maxIncl);
 
-  ros::Subscriber subScan = nh.subscribe<sensor_msgs::PointCloud2>
-                            ("/velodyne_points", 2, scanHandler);
+  ros::Subscriber subScan = nh.subscribe<sensor_msgs::PointCloud2>("/velodyne_points", 2, scanHandler);
 
-  ros::Subscriber subTerrainCloud = nh.subscribe<sensor_msgs::PointCloud2>
-                                    ("/terrain_map", 2, terrainCloudHandler);
+  ros::Subscriber subTerrainCloud = nh.subscribe<sensor_msgs::PointCloud2>("/terrain_map", 2, terrainCloudHandler);
 
-  ros::Subscriber subSpeed = nh.subscribe<geometry_msgs::TwistStamped>
-                            ("/cmd_vel", 5, speedHandler);
+  ros::Subscriber subSpeed = nh.subscribe<geometry_msgs::TwistStamped>("/cmd_vel", 5, speedHandler);
 
-  ros::Publisher pubVehicleOdom = nh.advertise<nav_msgs::Odometry> ("/state_estimation", 5);
+  ros::Publisher pubVehicleOdom = nh.advertise<nav_msgs::Odometry>("/state_estimation", 5);
 
   nav_msgs::Odometry odomData;
   odomData.header.frame_id = "/map";
@@ -319,13 +344,15 @@ int main(int argc, char** argv)
   odomTrans.frame_id_ = "/map";
   odomTrans.child_frame_id_ = "/sensor";
 
-  ros::Publisher pubModelState = nh.advertise<gazebo_msgs::ModelState> ("/gazebo/set_model_state", 5);
+  ros::Publisher pubModelState = nh.advertise<gazebo_msgs::ModelState>("/gazebo/set_model_state", 5);
   gazebo_msgs::ModelState cameraState;
   cameraState.model_name = "camera";
   gazebo_msgs::ModelState lidarState;
   lidarState.model_name = "lidar";
+  gazebo_msgs::ModelState robotState;
+  robotState.model_name = "robot";
 
-  ros::Publisher pubScan = nh.advertise<sensor_msgs::PointCloud2> ("/registered_scan", 2);
+  ros::Publisher pubScan = nh.advertise<sensor_msgs::PointCloud2>("/registered_scan", 2);
   pubScanPointer = &pubScan;
 
   terrainDwzFilter.setLeafSize(terrainVoxelSize, terrainVoxelSize, terrainVoxelSize);
@@ -334,7 +361,8 @@ int main(int argc, char** argv)
 
   ros::Rate rate(200);
   bool status = ros::ok();
-  while (status) {
+  while (status)
+  {
     ros::spinOnce();
 
     float vehicleRecRoll = vehicleRoll;
@@ -344,13 +372,15 @@ int main(int argc, char** argv)
     vehicleRoll = terrainRoll * cos(vehicleYaw) + terrainPitch * sin(vehicleYaw);
     vehiclePitch = -terrainRoll * sin(vehicleYaw) + terrainPitch * cos(vehicleYaw);
     vehicleYaw += 0.005 * vehicleYawRate;
-    if (vehicleYaw > PI) vehicleYaw -= 2 * PI;
-    else if (vehicleYaw < -PI) vehicleYaw += 2 * PI;
+    if (vehicleYaw > PI)
+      vehicleYaw -= 2 * PI;
+    else if (vehicleYaw < -PI)
+      vehicleYaw += 2 * PI;
 
-    vehicleX += 0.005 * cos(vehicleYaw) * vehicleSpeed 
-              + 0.005 * vehicleYawRate * (-sin(vehicleYaw) * sensorOffsetX - cos(vehicleYaw) * sensorOffsetY);
-    vehicleY += 0.005 * sin(vehicleYaw) * vehicleSpeed 
-              + 0.005 * vehicleYawRate * (cos(vehicleYaw) * sensorOffsetX - sin(vehicleYaw) * sensorOffsetY);
+    vehicleX += 0.005 * cos(vehicleYaw) * vehicleSpeed +
+                0.005 * vehicleYawRate * (-sin(vehicleYaw) * sensorOffsetX - cos(vehicleYaw) * sensorOffsetY);
+    vehicleY += 0.005 * sin(vehicleYaw) * vehicleSpeed +
+                0.005 * vehicleYawRate * (cos(vehicleYaw) * sensorOffsetX - sin(vehicleYaw) * sensorOffsetY);
     vehicleZ = terrainZ + vehicleHeight;
 
     odomTime = ros::Time::now();
@@ -391,8 +421,14 @@ int main(int argc, char** argv)
     cameraState.pose.orientation = geoQuat;
     cameraState.pose.position.x = vehicleX;
     cameraState.pose.position.y = vehicleY;
-    cameraState.pose.position.z = vehicleZ;
+    cameraState.pose.position.z = vehicleZ + cameraOffsetZ;
     pubModelState.publish(cameraState);
+
+    robotState.pose.orientation = geoQuat;
+    robotState.pose.position.x = vehicleX;
+    robotState.pose.position.y = vehicleY;
+    robotState.pose.position.z = vehicleZ;
+    pubModelState.publish(robotState);
 
     geoQuat = tf::createQuaternionMsgFromRollPitchYaw(terrainRoll, terrainPitch, 0);
 

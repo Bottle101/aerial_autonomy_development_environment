@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 2.8.3)
-project(vehicle_simulator)
+project(terrain_analysis_ext)
 
 set(CMAKE_BUILD_TYPE Release)
 set(BUILD_STATIC_LIBS ON)
@@ -51,12 +51,12 @@ link_directories(
 )
 
 ## Declare executables
-add_executable(vehicleSimulator src/vehicleSimulator.cpp)
+add_executable(terrainAnalysisExt src/terrainAnalysisExt.cpp)
 
 ## Specify libraries to link a library or executable target against
-target_link_libraries(vehicleSimulator ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${PCL_LIBRARIES})
+target_link_libraries(terrainAnalysisExt ${catkin_LIBRARIES} ${OpenCV_LIBRARIES} ${PCL_LIBRARIES})
 
-install(TARGETS vehicleSimulator
+install(TARGETS terrainAnalysisExt
   ARCHIVE DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   LIBRARY DESTINATION ${CATKIN_PACKAGE_LIB_DESTINATION}
   RUNTIME DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
@@ -64,19 +64,4 @@ install(TARGETS vehicleSimulator
 
 install(DIRECTORY launch/
   DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/launch
-)
-install(DIRECTORY log/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/log
-)
-install(DIRECTORY mesh/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/mesh
-)
-install(DIRECTORY rviz/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/rviz
-)
-install(DIRECTORY urdf/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/urdf
-)
-install(DIRECTORY world/
-  DESTINATION ${CATKIN_PACKAGE_SHARE_DESTINATION}/world
 )
