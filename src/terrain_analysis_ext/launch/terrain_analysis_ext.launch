@@ -12,7 +12,7 @@
     <param name="vehicleHeight" type="double" value="1.5" />
     <param name="voxelPointUpdateThre" type="int" value="100" />
     <param name="voxelTimeUpdateThre" type="double" value="2.0" />
-    <param name="lowerBoundZ" type="double" value="-2.5" />
+    <param name="lowerBoundZ" type="double" value="0.0" />
     <param name="upperBoundZ" type="double" value="1.0" />
     <param name="disRatioZ" type="double" value="0.1" />
     <param name="checkTerrainConn" type="bool" value="$(arg checkTerrainConn)" />

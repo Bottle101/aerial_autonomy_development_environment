@@ -8,14 +8,13 @@
 #include <message_filters/synchronizer.h>
 #include <message_filters/sync_policies/approximate_time.h>
 
-#include <std_msgs/Int8.h>
 #include <std_msgs/Float32.h>
 #include <nav_msgs/Path.h>
 #include <nav_msgs/Odometry.h>
-#include <geometry_msgs/TwistStamped.h>
-#include <sensor_msgs/Imu.h>
+#include <geometry_msgs/PointStamped.h>
 #include <sensor_msgs/PointCloud2.h>
 #include <sensor_msgs/Joy.h>
+#include <visualization_msgs/Marker.h>
 
 #include <tf/transform_datatypes.h>
 #include <tf/transform_broadcaster.h>
@@ -30,152 +29,695 @@ using namespace std;
 
 const double PI = 3.1415926;
 
-double sensorOffsetX = 0;
-double sensorOffsetY = 0;
+string stateEstimationTopic = "/state_estimation";
+string desiredTrajFile;
+string executedTrajFile;
+bool saveTrajectory = false;
+double saveTrajInverval = 0.1;
+bool waypointTest = false;
+int waypointNum = 6;
+double waypointInterval = 1.0;
+double waypointYaw = 45.0;
+double waypointZ = 2.0;
+bool autonomyMode = false;
 int pubSkipNum = 1;
 int pubSkipCount = 0;
-bool twoWayDrive = true;
-double lookAheadDis = 0.5;
-double yawRateGain = 7.5;
-double stopYawRateGain = 7.5;
-double maxYawRate = 45.0;
-double maxSpeed = 1.0;
-double maxAccel = 1.0;
-double switchTimeThre = 1.0;
-double dirDiffThre = 0.1;
-double stopDisThre = 0.2;
-double slowDwnDisThre = 1.0;
-bool useInclRateToSlow = false;
-double inclRateThre = 120.0;
-double slowRate1 = 0.25;
-double slowRate2 = 0.5;
-double slowTime1 = 2.0;
-double slowTime2 = 2.0;
-bool useInclToStop = false;
-double inclThre = 45.0;
-double stopTime = 5.0;
-bool noRotAtStop = false;
-bool noRotAtGoal = true;
-bool autonomyMode = false;
-double autonomySpeed = 1.0;
+bool trackingCamBackward = false;
+double trackingCamXOffset = 0;
+double trackingCamYOffset = 0;
+double trackingCamZOffset = 0;
+double trackingCamScale = 1.0;
+double lookAheadScale = 0.2;
+double minLookAheadDis = 0.2;
+double minSpeed = 0.5;
+double maxSpeed = 2.0;
+double desiredSpeed = minSpeed;
+double accXYGain = 0.05;
+double velXYGain = 0.4;
+double posXYGain = 0.05;
+double stopVelXYGain = 0.2;
+double stopPosXYGain = 0.2;
+double smoothIncrSpeed = 0.75;
+double maxRollPitch = 30.0;
+double yawRateScale = 1.0;
+double yawGain = 2.0;
+double yawBoostScale = 2.0;
+double maxRateByYaw = 60.0;
+double velZScale = 1.0;
+double posZGain = 1.5;
+double posZBoostScale = 2.0;
+double maxVelByPosZ = 0.5;
+double manualSpeedXY = 2.0;
+double manualSpeedZ = 1.0;
+double manualYawRate = 60.0;
+double slowTurnRate = 0.75;
+double minSlowTurnCurv = 0.9;
+double minSlowTurnInterval = 1.0;
+double minStopRotInterval = 1.0;
+double stopRotDelayTime = 0;
+double stopRotDis = 1.0;
+double stopRotYaw1 = 90.0;
+double stopRotYaw2 = 10.0;
+double stopDis = 0.5;
+double slowDis = 2.0;
+double joyDeadband = 0.1;
 double joyToSpeedDelay = 2.0;
+bool shiftGoalAtStart = false;
+double goalX = 0;
+double goalY = 0;
+double goalZ = 1.0;
 
-float joySpeed = 0;
-float joySpeedRaw = 0;
+int trackPathID = 0;
+const int stackNum = 200;
+int trackPathIDStack[stackNum];
+double odomTimeStack[stackNum];
+float odomYawStack[stackNum];
+int odomSendIDPointer = -1;
+int odomRecIDPointer = 0;
+
+bool manualMode = true;
+bool autoAdjustMode = false;
+int stateInitDelay = 100;
+
+bool pathFound = true;
+double stopRotTime = 0;
+double slowTurnTime = 0;
+double autoModeTime = 0;
+int waypointCount = 0;
+double waypointTime = 0;
+
+double joyTime = 0;
+float joyFwd = 0;
+float joyFwdDb = 0;
+float joyLeft = 0;
+float joyUp = 0;
 float joyYaw = 0;
-int safetyStop = 0;
+
+float trackX = 0;
+float trackY = 0;
+float trackZ = 0;
+float trackPitch = 0;
+float trackYaw = 0;
+
+float trackRecX = 0;
+float trackRecY = 0;
+float trackRecZ = 0;
 
 float vehicleX = 0;
 float vehicleY = 0;
 float vehicleZ = 0;
-float vehicleRoll = 0;
-float vehiclePitch = 0;
 float vehicleYaw = 0;
 
-float vehicleXRec = 0;
-float vehicleYRec = 0;
-float vehicleZRec = 0;
-float vehicleRollRec = 0;
-float vehiclePitchRec = 0;
-float vehicleYawRec = 0;
+float vehicleRecX = 0;
+float vehicleRecY = 0;
+float vehicleRecZ = 0;
 
-float vehicleYawRate = 0;
-float vehicleSpeed = 0;
+float vehicleVelX = 0;
+float vehicleVelY = 0;
+float vehicleVelZ = 0;
 
-double odomTime = 0;
-double joyTime = 0;
-double slowInitTime = 0;
-double stopInitTime = false;
-int pathPointID = 0;
-bool pathInit = false;
-bool navFwd = true;
-double switchTime = 0;
+float vehicleAngRateX = 0;
+float vehicleAngRateY = 0;
+float vehicleAngRateZ = 0;
 
-nav_msgs::Path path;
+visualization_msgs::Marker trackMarker;
+nav_msgs::Odometry trackOdom;
+nav_msgs::Path trackPath, trackPath2, trackPathShow;
+geometry_msgs::TwistStamped control_cmd;
+std_msgs::Float32 autoMode;
+geometry_msgs::PointStamped waypoint;
+tf::StampedTransform odomTrans;
 
-void odomHandler(const nav_msgs::Odometry::ConstPtr& odomIn)
+ros::Publisher *pubMarkerPointer;
+ros::Publisher *pubOdometryPointer;
+ros::Publisher *pubPathPointer;
+ros::Publisher *pubControlPointer;
+ros::Publisher *pubAutoModePointer;
+ros::Publisher *pubWaypointPointer;
+tf::TransformBroadcaster *tfBroadcasterPointer;
+
+FILE *desiredTrajFilePtr = NULL;
+FILE *executedTrajFilePtr = NULL;
+
+void stateEstimationHandler(const nav_msgs::Odometry::ConstPtr& odom)
 {
-  odomTime = odomIn->header.stamp.toSec();
+  if (stateInitDelay >= 0 && shiftGoalAtStart) {
+    if (stateInitDelay == 0) {
+      goalX += trackingCamScale * odom->pose.pose.position.x;
+      goalY += trackingCamScale * odom->pose.pose.position.y;
+      goalZ += trackingCamScale * odom->pose.pose.position.z;
+    }
+    stateInitDelay--;
+    return;
+  }
+
+  pubSkipCount--;
+  if (pubSkipCount >= 0) {
+    return;
+  } else {
+    pubSkipCount = pubSkipNum;
+  }
+
+  double odomTime = odom->header.stamp.toSec();
 
   double roll, pitch, yaw;
-  geometry_msgs::Quaternion geoQuat = odomIn->pose.pose.orientation;
+  geometry_msgs::Quaternion geoQuat = odom->pose.pose.orientation;
   tf::Matrix3x3(tf::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w)).getRPY(roll, pitch, yaw);
 
-  vehicleRoll = roll;
-  vehiclePitch = pitch;
+  vehicleX = trackingCamScale * odom->pose.pose.position.x;
+  vehicleY = trackingCamScale * odom->pose.pose.position.y;
+  vehicleZ = trackingCamScale * odom->pose.pose.position.z;
+  vehicleVelX = trackingCamScale * odom->twist.twist.linear.x;
+  vehicleVelY = trackingCamScale * odom->twist.twist.linear.y;
+  vehicleVelZ = trackingCamScale * odom->twist.twist.linear.z;
+  vehicleAngRateX = odom->twist.twist.angular.x;
+  vehicleAngRateY = odom->twist.twist.angular.y;
+  vehicleAngRateZ = odom->twist.twist.angular.z;
   vehicleYaw = yaw;
-  vehicleX = odomIn->pose.pose.position.x - cos(yaw) * sensorOffsetX + sin(yaw) * sensorOffsetY;
-  vehicleY = odomIn->pose.pose.position.y - sin(yaw) * sensorOffsetX - cos(yaw) * sensorOffsetY;
-  vehicleZ = odomIn->pose.pose.position.z;
 
-  if ((fabs(roll) > inclThre * PI / 180.0 || fabs(pitch) > inclThre * PI / 180.0) && useInclToStop) {
-    stopInitTime = odomIn->header.stamp.toSec();
+  if (trackingCamBackward) {
+    roll = -roll;
+    pitch = -pitch;
+    vehicleX = -vehicleX;
+    vehicleY = -vehicleY;
+    vehicleVelX = -vehicleVelX;
+    vehicleVelY = -vehicleVelY;
+    vehicleAngRateX = -vehicleAngRateX;
+    vehicleAngRateY = -vehicleAngRateY;
   }
 
-  if ((fabs(odomIn->twist.twist.angular.x) > inclRateThre * PI / 180.0 || fabs(odomIn->twist.twist.angular.y) > inclRateThre * PI / 180.0) && useInclRateToSlow) {
-    slowInitTime = odomIn->header.stamp.toSec();
+  float sinRoll = sin(roll);
+  float cosRoll = cos(roll);
+  float sinPitch = sin(pitch);
+  float cosPitch = cos(pitch);
+  float sinYaw = sin(yaw);
+  float cosYaw = cos(yaw);
+
+  float pointX1 = trackingCamXOffset;
+  float pointY1 = trackingCamYOffset * cosRoll - trackingCamZOffset * sinRoll;
+  float pointZ1 = trackingCamYOffset * sinRoll + trackingCamZOffset * cosRoll;
+
+  float pointX2 = pointX1 * cosPitch + pointZ1 * sinPitch;
+  float pointY2 = pointY1;
+  float pointZ2 = -pointX1 * sinPitch + pointZ1 * cosPitch;
+
+  vehicleX -= pointX2 * cosYaw - pointY2 * sinYaw - trackingCamXOffset;
+  vehicleY -= pointX2 * sinYaw + pointY2 * cosYaw - trackingCamYOffset;
+  vehicleZ -= pointZ2 - trackingCamZOffset;
+
+  vehicleVelX -= -trackingCamYOffset * vehicleAngRateZ + trackingCamZOffset * vehicleAngRateY;
+  vehicleVelY -= -trackingCamZOffset * vehicleAngRateX + trackingCamXOffset * vehicleAngRateZ;
+  vehicleVelZ -= -trackingCamXOffset * vehicleAngRateY + trackingCamYOffset * vehicleAngRateX;
+
+  float velX1 = vehicleVelX;
+  float velY1 = vehicleVelY * cosRoll - vehicleVelZ * sinRoll;
+  float velZ1 = vehicleVelY * sinRoll + vehicleVelZ * cosRoll;
+
+  vehicleVelX = velX1 * cosPitch + velZ1 * sinPitch;
+  vehicleVelY = velY1;
+  vehicleVelZ = -velX1 * sinPitch + velZ1 * cosPitch;
+
+  float vehicleSpeed = sqrt(vehicleVelX * vehicleVelX + vehicleVelY * vehicleVelY);
+
+  float disToGoalX = goalX - vehicleX;
+  float disToGoalY = goalY - vehicleY;
+  float disToGoal = sqrt(disToGoalX * disToGoalX + disToGoalY * disToGoalY);
+  float dirToGoal = atan2(goalY - vehicleY, goalX - vehicleX) - vehicleYaw;
+  if (dirToGoal > PI) dirToGoal -= 2 * PI;
+  else if (dirToGoal < -PI) dirToGoal += 2 * PI;
+
+  if (autonomyMode) {
+    if (odomTime > stopRotTime + minStopRotInterval && disToGoal > stopRotDis && (fabs(dirToGoal) > stopRotYaw1 * PI / 180.0 || 
+        (fabs(dirToGoal) > stopRotYaw2 * PI / 180.0 && vehicleSpeed < minSpeed / 2.0)) && !autoAdjustMode) {
+      joyFwd = 0;
+      joyLeft = 0;
+      joyUp = 0;
+      joyYaw = 0;
+
+      stopRotTime = odomTime;
+      if (vehicleSpeed < minSpeed / 2.0) stopRotTime -= stopRotDelayTime;
+
+      autoAdjustMode = true;
+    }
+
+    if (odomTime > stopRotTime + stopRotDelayTime && autoAdjustMode) {
+      if (fabs(dirToGoal) > stopRotYaw2 * PI / 180.0) {
+        joyFwd = 0;
+        joyLeft = 0;
+        joyUp = 0;
+        if (dirToGoal < 0) joyYaw = -1.0;
+        else joyYaw = 1.0;
+      } else {
+        joyFwd = 1.0;
+        joyLeft = 0;
+        joyUp = 0;
+        joyYaw = 0;
+
+        autoAdjustMode = false;
+      }
+    }
+
+    if (odomTime - autoModeTime > 0.0667) {
+      if (autoAdjustMode) autoMode.data = -1.0;
+      else autoMode.data = desiredSpeed / maxSpeed;
+
+      pubAutoModePointer->publish(autoMode);
+      autoModeTime = odomTime;
+    }
+  } else {
+    autoAdjustMode = false;
   }
+
+  if (manualMode || (autonomyMode && autoAdjustMode)) {
+    trackX = vehicleX;
+    trackY = vehicleY;
+    trackZ = vehicleZ;
+    trackYaw = vehicleYaw;
+
+    float desiredRoll = -stopVelXYGain * (manualSpeedXY * joyLeft - vehicleVelY) - posXYGain * lookAheadScale * manualSpeedXY * joyLeft;
+    if (desiredRoll > maxRollPitch * PI / 180.0) desiredRoll = maxRollPitch * PI / 180.0;
+    else if (desiredRoll < -maxRollPitch * PI / 180.0) desiredRoll = -maxRollPitch * PI / 180.0;
+
+    float desiredPitch = stopVelXYGain * (manualSpeedXY * joyFwd - vehicleVelX) + posXYGain * lookAheadScale * manualSpeedXY * joyFwd;
+    if (desiredPitch > maxRollPitch * PI / 180.0) desiredPitch = maxRollPitch * PI / 180.0;
+    else if (desiredPitch < -maxRollPitch * PI / 180.0) desiredPitch = -maxRollPitch * PI / 180.0;
+
+    control_cmd.twist.linear.x = desiredRoll;
+    control_cmd.twist.linear.y = desiredPitch;
+    control_cmd.twist.linear.z = manualSpeedZ * joyUp;
+    control_cmd.twist.angular.z = manualYawRate * joyYaw * PI / 180.0;
+  } else {
+    trackX = trackPath.poses[trackPathID].pose.position.x;
+    trackY = trackPath.poses[trackPathID].pose.position.y;
+    trackZ = trackPath.poses[trackPathID].pose.position.z;
+
+    if (joyFwdDb < joyFwd) joyFwdDb = joyFwd;
+    else if (joyFwdDb > joyFwd + joyDeadband) joyFwdDb = joyFwd + joyDeadband;
+    if (joyFwd <= joyDeadband) joyFwdDb = 0;
+
+    float joyFwd2 = joyFwdDb;
+    if (joyFwd2 < minSpeed / maxSpeed) joyFwd2 = 0;
+
+    float lookAheadDis = lookAheadScale * maxSpeed * joyFwd2;
+    if (autonomyMode) lookAheadDis = lookAheadScale * desiredSpeed;
+    if (lookAheadDis <= 0) lookAheadDis = 0;
+    else if (lookAheadDis < minLookAheadDis) lookAheadDis = minLookAheadDis;
+
+    float disX = trackX - vehicleX;
+    float disY = trackY - vehicleY;
+    float disZ = trackZ - vehicleZ;
+    float dis = sqrt(disX * disX + disY * disY);
+
+    int trackPathLength = trackPath.poses.size();
+    while (trackPathID < trackPathLength - 1) {
+      float trackNextX = trackPath.poses[trackPathID + 1].pose.position.x;
+      float trackNextY = trackPath.poses[trackPathID + 1].pose.position.y;
+      float trackNextZ = trackPath.poses[trackPathID + 1].pose.position.z;
+
+      float disNextX = trackNextX - vehicleX;
+      float disNextY = trackNextY - vehicleY;
+      float disNext = sqrt(disNextX * disNextX + disNextY * disNextY);
+
+      if (fabs(disNext - lookAheadDis) <= fabs(dis - lookAheadDis) || disNext <= dis) {
+        trackX = trackNextX;
+        trackY = trackNextY;
+        trackZ = trackNextZ;
+
+        dis = disNext;
+        trackPathID++;
+      } else {
+        break;
+      }
+    }
+
+    float curv = 0;
+    float slope = 0;
+    if (trackPathID > 0) {
+      float deltaX = trackX - trackPath.poses[trackPathID - 1].pose.position.x;
+      float deltaY = trackY - trackPath.poses[trackPathID - 1].pose.position.y;
+      float deltaZ = trackZ - trackPath.poses[trackPathID - 1].pose.position.z;
+      trackYaw = atan2(deltaY, deltaX);
+
+      float deltaDis = sqrt(deltaX * deltaX + deltaY * deltaY);
+      if (deltaDis > 0.001 && trackPathID < trackPathLength - 1) {
+        deltaX = trackPath.poses[trackPathID + 1].pose.position.x - trackPath.poses[trackPathID].pose.position.x;
+        deltaY = trackPath.poses[trackPathID + 1].pose.position.y - trackPath.poses[trackPathID].pose.position.y;
+        float trackNextYaw = atan2(deltaY, deltaX);
+
+        float deltaYaw = trackNextYaw - trackYaw;
+        if (deltaYaw > PI) deltaYaw -= 2 * PI;
+        else if (deltaYaw < -PI) deltaYaw += 2 * PI;
+
+        curv = deltaYaw / deltaDis;
+        slope = deltaZ / deltaDis;
+      }
+    }
+
+    float dirToPath = trackYaw - vehicleYaw;
+    if (dirToPath > PI) dirToPath -= 2 * PI;
+    else if (dirToPath < -PI) dirToPath += 2 * PI;
+
+    float vehicleVelPath = vehicleVelX * cos(dirToPath) + vehicleVelY * sin(dirToPath);
+    float desiredSpeed2 = vehicleVelPath + smoothIncrSpeed;
+    float velXYGain2 = velXYGain;
+    float posXYGain2 = posXYGain;
+    float yawRatePath = curv * vehicleVelPath;
+    float yawBoostScale2 = yawBoostScale;
+    float velZPath = slope * vehicleVelPath;
+    float posZBoostScale2 = posZBoostScale;
+    float slowTurnRate2 = 1.0;
+    if (fabs(curv) > minSlowTurnCurv || odomTime < slowTurnTime + minSlowTurnInterval) {
+      slowTurnRate2 = slowTurnRate;
+      if (fabs(curv) > minSlowTurnCurv) slowTurnTime = odomTime;
+    }
+    if (autonomyMode) {
+      if (desiredSpeed2 > slowTurnRate2 * desiredSpeed) desiredSpeed2 = slowTurnRate2 * desiredSpeed;
+    } else {
+      if (desiredSpeed2 > slowTurnRate2 * maxSpeed * joyFwd2) desiredSpeed2 = slowTurnRate2 * maxSpeed * joyFwd2;
+    }
+    if (desiredSpeed2 < minSpeed) desiredSpeed2 = minSpeed;
+    if (joyFwd2 == 0 || !pathFound || (disToGoal < stopDis && autonomyMode && !autoAdjustMode)) {
+      desiredSpeed2 = 0;
+      velXYGain2 = stopVelXYGain;
+      posXYGain2 = stopPosXYGain;
+      yawRatePath = 0;
+      yawBoostScale2 = 1.0;
+      velZPath = 0;
+      posZBoostScale2 = 1.0;
+    } else if (disToGoal < slowDis && autonomyMode && !autoAdjustMode) {
+      float slowSpeed = (maxSpeed * (disToGoal - stopDis) + minSpeed * (slowDis - disToGoal)) / (slowDis - stopDis);
+      if (desiredSpeed2 > slowSpeed) desiredSpeed2 = slowSpeed;
+    }
+
+    if (fabs(curv) < 0.001) {
+      yawRatePath = 0;
+      yawBoostScale2 = 1.0;
+    }
+
+    float deltaZ = 0;
+    if (trackPathID > 0) {
+      deltaZ = trackZ - trackPath.poses[trackPathID - 1].pose.position.z;
+    }
+    if (fabs(deltaZ) < 0.001) {
+      velZPath = 0;
+      posZBoostScale2 = 1.0;
+    }
+
+    disX = trackX - vehicleX;
+    disY = trackY - vehicleY;
+    disZ = trackZ - vehicleZ;
+
+    float disX2 = disX * cos(vehicleYaw) + disY * sin(vehicleYaw);
+    float disY2 = -disX * sin(vehicleYaw) + disY * cos(vehicleYaw);
+    float dis2 = sqrt(disX2 * disX2 + disY2 * disY2);
+
+    if (dis2 > lookAheadDis + stopDis) {
+      disX2 *= (lookAheadDis + stopDis) / dis2;
+      disY2 *= (lookAheadDis + stopDis) / dis2;
+    }
+
+    float dirDiff = trackYaw - vehicleYaw;
+    if (dirDiff > PI) dirDiff -= 2 * PI;
+    else if (dirDiff < -PI) dirDiff += 2 * PI;
+
+    float desiredRoll = 0;
+    float desiredPitch = 0;
+    if (dis2 > 0.001) {
+      desiredRoll = -accXYGain * curv * desiredSpeed2 * desiredSpeed2 * cos(dirDiff)
+                   - velXYGain2 * (desiredSpeed2 * disY2 / dis2 - vehicleVelY) - posXYGain2 * disY2;
+      if (desiredRoll > maxRollPitch * PI / 180.0) desiredRoll = maxRollPitch * PI / 180.0;
+      else if (desiredRoll < -maxRollPitch * PI / 180.0) desiredRoll = -maxRollPitch * PI / 180.0;
+
+      desiredPitch = -accXYGain * curv * desiredSpeed2 * desiredSpeed2 * sin(dirDiff)
+                  + velXYGain2 * (desiredSpeed2 * disX2 / dis2 - vehicleVelX) + posXYGain2 * disX2;
+      if (desiredPitch > maxRollPitch * PI / 180.0) desiredPitch = maxRollPitch * PI / 180.0;
+      else if (desiredPitch < -maxRollPitch * PI / 180.0) desiredPitch = -maxRollPitch * PI / 180.0;
+    }
+
+    float desiredYawRate = yawGain * dirDiff;
+    if (desiredYawRate > maxRateByYaw * PI / 180.0) desiredYawRate = maxRateByYaw * PI / 180.0;
+    else if (desiredYawRate < -maxRateByYaw * PI / 180.0) desiredYawRate = -maxRateByYaw * PI / 180.0;
+    desiredYawRate = yawRateScale * yawRatePath + yawBoostScale2 * desiredYawRate;
+
+    float desiredVelZ = posZGain * disZ;
+    if (desiredVelZ > maxVelByPosZ) desiredVelZ = maxVelByPosZ;
+    else if (desiredVelZ < -maxVelByPosZ) desiredVelZ = -maxVelByPosZ;
+    desiredVelZ = velZScale * velZPath + posZBoostScale2 * desiredVelZ;
+
+    control_cmd.twist.linear.x = desiredRoll;
+    control_cmd.twist.linear.y = desiredPitch;
+    control_cmd.twist.linear.z = desiredVelZ;
+    control_cmd.twist.angular.z = desiredYawRate;
+  }
+
+  odomSendIDPointer = (odomSendIDPointer + 1) % stackNum;
+  odomTimeStack[odomSendIDPointer] = odomTime;
+  odomYawStack[odomSendIDPointer] = trackYaw;
+  trackPathIDStack[odomSendIDPointer] = trackPathID;
+
+  if (autonomyMode && waypointTest) {
+    if (odomTime - waypointTime > waypointInterval) {
+      float angle = 0, elev = 0;
+      if (waypointCount > 0 && waypointCount < waypointNum - 1) {
+        if (waypointCount % 2 == 0) {
+          angle = -waypointYaw;
+          elev = -waypointZ;
+        } else {
+          angle = waypointYaw;
+          elev = waypointZ;
+        }
+      }
+
+      if (waypointCount < waypointNum) {
+        waypoint.header.stamp = odom->header.stamp;
+        waypoint.header.frame_id = "/map";
+        waypoint.point.x = 10.0 * cos(vehicleYaw + angle * PI / 180.0) + vehicleX;
+        waypoint.point.y = 10.0 * sin(vehicleYaw + angle * PI / 180.0) + vehicleY;
+        waypoint.point.z = vehicleZ + elev;
+        pubWaypointPointer->publish(waypoint);
+
+        waypointTime = odomTime;
+        if (waypointCount == 1 || waypointCount == waypointNum - 2) waypointTime -= waypointInterval / 2.0;
+        waypointCount++;
+      }
+    }
+  }
+
+  if (saveTrajectory) {
+    float disX = trackX - trackRecX;
+    float disY = trackY - trackRecY;
+    float disZ = trackZ - trackRecZ;
+    float dis = sqrt(disX * disX + disY * disY + disZ * disZ);
+
+    float disX2 = vehicleX - vehicleRecX;
+    float disY2 = vehicleY - vehicleRecY;
+    float disZ2 = vehicleZ - vehicleRecZ;
+    float dis2 = sqrt(disX2 * disX2 + disY2 * disY2 + disZ2 * disZ2);
+
+    if (dis > saveTrajInverval && dis2 > saveTrajInverval) {
+      fprintf(desiredTrajFilePtr, "%f %f %f %f %lf\n", trackX, trackY, trackZ, trackYaw, odomTime);
+      fprintf(executedTrajFilePtr, "%f %f %f %f %f %f %lf\n", vehicleX, vehicleY, vehicleZ, roll, pitch, yaw, odomTime);
+
+      trackRecX = trackX;
+      trackRecY = trackY;
+      trackRecZ = trackZ;
+
+      vehicleRecX = vehicleX;
+      vehicleRecY = vehicleY;
+      vehicleRecZ = vehicleZ;
+    }
+  }
+
+  control_cmd.header.stamp = odom->header.stamp;
+  control_cmd.header.frame_id = "vehicle";
+  pubControlPointer->publish(control_cmd);
+
+  trackMarker.header.stamp = odom->header.stamp;
+  trackMarker.header.frame_id = "map";
+  trackMarker.ns = "track_point";
+  trackMarker.id = 0;
+  trackMarker.type = visualization_msgs::Marker::SPHERE;
+  trackMarker.action = visualization_msgs::Marker::ADD;
+  trackMarker.scale.x = 0.2;
+  trackMarker.scale.y = 0.2;
+  trackMarker.scale.z = 0.2;
+  trackMarker.color.a = 1.0;
+  trackMarker.color.r = 1.0;
+  trackMarker.pose.position.x = trackX;
+  trackMarker.pose.position.y = trackY;
+  trackMarker.pose.position.z = trackZ;
+  pubMarkerPointer->publish(trackMarker);
+
+  geoQuat = tf::createQuaternionMsgFromRollPitchYaw(0, trackPitch, trackYaw);
+
+  trackOdom.header.stamp = odom->header.stamp;
+  trackOdom.header.frame_id = "map";
+  trackOdom.child_frame_id = "track_point";
+  trackOdom.pose.pose.orientation = geoQuat;
+  trackOdom.pose.pose.position.x = trackX;
+  trackOdom.pose.pose.position.y = trackY;
+  trackOdom.pose.pose.position.z = trackZ;
+  trackOdom.twist.twist.angular.x = roll;
+  trackOdom.twist.twist.angular.y = pitch;
+  trackOdom.twist.twist.angular.z = yaw;
+  trackOdom.twist.twist.linear.x = vehicleX;
+  trackOdom.twist.twist.linear.y = vehicleY;
+  trackOdom.twist.twist.linear.z = vehicleZ;
+  pubOdometryPointer->publish(trackOdom);
+
+  odomTrans.stamp_ = odom->header.stamp;
+  odomTrans.frame_id_ = "map";
+  odomTrans.child_frame_id_ = "track_point";
+  odomTrans.setRotation(tf::Quaternion(geoQuat.x, geoQuat.y, geoQuat.z, geoQuat.w));
+  odomTrans.setOrigin(tf::Vector3(trackX, trackY, trackZ));
+  tfBroadcasterPointer->sendTransform(odomTrans);
 }
 
-void pathHandler(const nav_msgs::Path::ConstPtr& pathIn)
+void pathHandler(const nav_msgs::Path::ConstPtr& path)
 {
-  int pathSize = pathIn->poses.size();
-  path.poses.resize(pathSize);
-  for (int i = 0; i < pathSize; i++) {
-    path.poses[i].pose.position.x = pathIn->poses[i].pose.position.x;
-    path.poses[i].pose.position.y = pathIn->poses[i].pose.position.y;
-    path.poses[i].pose.position.z = pathIn->poses[i].pose.position.z;
+  double pathTime = path->header.stamp.toSec();
+
+  int pathLength = path->poses.size();
+  if (pathLength > 1) {
+    pathFound = true;
+  } else {
+    pathLength = 1;
+    pathFound = false;
   }
 
-  vehicleXRec = vehicleX;
-  vehicleYRec = vehicleY;
-  vehicleZRec = vehicleZ;
-  vehicleRollRec = vehicleRoll;
-  vehiclePitchRec = vehiclePitch;
-  vehicleYawRec = vehicleYaw;
+  if (odomSendIDPointer < 0) {
+    return;
+  }
 
-  pathPointID = 0;
-  pathInit = true;
+  while (odomRecIDPointer != (odomSendIDPointer + 1) % stackNum) {
+    int odomRecIDPointerNext = (odomRecIDPointer + 1) % stackNum;
+    if (fabs(pathTime - odomTimeStack[odomRecIDPointer]) < fabs(pathTime - odomTimeStack[odomRecIDPointerNext])) {
+      break;
+    }
+    odomRecIDPointer = (odomRecIDPointer + 1) % stackNum;
+  }
+
+  int trackPathRecID = trackPathIDStack[odomRecIDPointer];
+  if (trackPathRecID < 100) {
+    trackPath2 = trackPath;
+    trackPath.poses.resize(trackPathRecID + pathLength);
+    for (int i = 0; i <= trackPathRecID; i++) {
+      trackPath.poses[i] = trackPath2.poses[i];
+    }
+  } else {
+    trackPath2.poses.resize(101);
+    for (int i = 0; i <= 100; i++) {
+      trackPath2.poses[i] = trackPath.poses[trackPathRecID + i - 100];
+    }
+    trackPath.poses.resize(trackPathRecID + pathLength);
+    for (int i = 0; i <= 100; i++) {
+      trackPath.poses[trackPathRecID + i - 100] = trackPath2.poses[i];
+    }
+  }
+
+  if (manualMode || (autonomyMode && autoAdjustMode)) {
+    trackPath.poses[trackPathRecID].pose.position.x = trackX;
+    trackPath.poses[trackPathRecID].pose.position.y = trackY;
+    trackPath.poses[trackPathRecID].pose.position.z = trackZ;
+    if (trackPathRecID > 0) {
+      trackPath.poses[trackPathRecID - 1].pose.position.x = trackX - 0.1 * cos(trackYaw);
+      trackPath.poses[trackPathRecID - 1].pose.position.y = trackY - 0.1 * sin(trackYaw);
+      trackPath.poses[trackPathRecID - 1].pose.position.z = trackZ;
+    }
+    odomYawStack[odomRecIDPointer] = trackYaw;
+  }
+
+  trackX = trackPath.poses[trackPathRecID].pose.position.x;
+  trackY = trackPath.poses[trackPathRecID].pose.position.y;
+  trackZ = trackPath.poses[trackPathRecID].pose.position.z;
+  trackYaw = odomYawStack[odomRecIDPointer];
+
+  float sinTrackPitch = sin(trackPitch);
+  float cosTrackPitch = cos(trackPitch);
+  float sinTrackYaw = sin(trackYaw);
+  float cosTrackYaw = cos(trackYaw);
+
+  for (int i = 1; i < pathLength; i++) {
+    float trackX2 = cosTrackPitch * path->poses[i].pose.position.x + sinTrackPitch * path->poses[i].pose.position.z;
+    float trackY2 = path->poses[i].pose.position.y;
+    float trackZ2 = -sinTrackPitch * path->poses[i].pose.position.x + cosTrackPitch * path->poses[i].pose.position.z;
+
+    trackPath.poses[trackPathRecID + i].pose.position.x = cosTrackYaw * trackX2 - sinTrackYaw * trackY2 + trackX;
+    trackPath.poses[trackPathRecID + i].pose.position.y = sinTrackYaw * trackX2 + cosTrackYaw * trackY2 + trackY;
+    trackPath.poses[trackPathRecID + i].pose.position.z = trackZ2 + trackZ;
+  }
+
+  int trackPathLength = trackPath.poses.size();
+  if (trackPathLength < 500) {
+    trackPathShow = trackPath;
+  } else {
+    trackPathShow.poses.resize(500);
+    for (int i = 0; i < 500; i++) {
+      trackPathShow.poses[i] = trackPath.poses[trackPathLength + i - 500];
+    }
+  }
+
+  trackPathShow.header.stamp = path->header.stamp;
+  trackPathShow.header.frame_id = "map";
+  pubPathPointer->publish(trackPathShow);
 }
 
 void joystickHandler(const sensor_msgs::Joy::ConstPtr& joy)
 {
   joyTime = ros::Time::now().toSec();
 
-  joySpeedRaw = sqrt(joy->axes[3] * joy->axes[3] + joy->axes[4] * joy->axes[4]);
-  joySpeed = joySpeedRaw;
-  if (joySpeed > 1.0) joySpeed = 1.0;
-  if (joy->axes[4] == 0) joySpeed = 0;
-  joyYaw = joy->axes[3];
-  if (joySpeed == 0 && noRotAtStop) joyYaw = 0;
-
-  if (joy->axes[4] < 0 && !twoWayDrive) {
-    joySpeed = 0;
-    joyYaw = 0;
+  if (joy->axes[2] >= -0.1 || joy->axes[5] < -0.1) {
+    joyFwd = joy->axes[4];
+    if (fabs(joyFwd) < joyDeadband) joyFwd = 0;
+    joyLeft = joy->axes[3];
+    if (fabs(joyLeft) < joyDeadband) joyLeft = 0;
+    joyUp = joy->axes[1];
+    if (fabs(joyUp) < joyDeadband) joyUp = 0;
+    joyYaw = joy->axes[0];
+    if (fabs(joyYaw) < joyDeadband) joyYaw = 0;
   }
 
-  if (joy->axes[2] > -0.1) {
+  if (joy->axes[5] < -0.1) {
+    manualMode = true;
     autonomyMode = false;
+    autoAdjustMode = false;
   } else {
-    autonomyMode = true;
+    manualMode = false;
+
+    if (joy->axes[2] < -0.1) {
+      if (!autonomyMode) joyFwd = 1.0;
+      autonomyMode = true;
+    } else {
+      autonomyMode = false;
+      autoAdjustMode = false;
+    }
   }
+
+  float joySpeed = joy->axes[4];
+  if (fabs(joySpeed) < joyDeadband) joySpeed = 0;
+
+  if (desiredSpeed < maxSpeed * joySpeed) desiredSpeed = maxSpeed * joySpeed;
+  else if (desiredSpeed > maxSpeed * (joySpeed + joyDeadband)) desiredSpeed = maxSpeed * (joySpeed + joyDeadband);
+  if (desiredSpeed < minSpeed || joySpeed <= joyDeadband) desiredSpeed = minSpeed;
+  else if (desiredSpeed > maxSpeed) desiredSpeed = maxSpeed;
+}
+
+void goalHandler(const geometry_msgs::PointStamped::ConstPtr& goal)
+{
+  goalX = goal->point.x;
+  goalY = goal->point.y;
+  goalZ = goal->point.z;
 }
 
 void speedHandler(const std_msgs::Float32::ConstPtr& speed)
 {
   double speedTime = ros::Time::now().toSec();
 
-  if (autonomyMode && speedTime - joyTime > joyToSpeedDelay && joySpeedRaw == 0) {
-    joySpeed = speed->data / maxSpeed;
-
-    if (joySpeed < 0) joySpeed = 0;
-    else if (joySpeed > 1.0) joySpeed = 1.0;
+  if (speedTime - joyTime > joyToSpeedDelay) {
+    desiredSpeed = maxSpeed * speed->data;
+    if (desiredSpeed < minSpeed) desiredSpeed = minSpeed;
+    else if (desiredSpeed > maxSpeed) desiredSpeed = maxSpeed;
   }
-}
-
-void stopHandler(const std_msgs::Int8::ConstPtr& stop)
-{
-  safetyStop = stop->data;
 }
 
 int main(int argc, char** argv)
@@ -184,165 +726,117 @@ int main(int argc, char** argv)
   ros::NodeHandle nh;
   ros::NodeHandle nhPrivate = ros::NodeHandle("~");
 
-  nhPrivate.getParam("sensorOffsetX", sensorOffsetX);
-  nhPrivate.getParam("sensorOffsetY", sensorOffsetY);
-  nhPrivate.getParam("pubSkipNum", pubSkipNum);
-  nhPrivate.getParam("twoWayDrive", twoWayDrive);
-  nhPrivate.getParam("lookAheadDis", lookAheadDis);
-  nhPrivate.getParam("yawRateGain", yawRateGain);
-  nhPrivate.getParam("stopYawRateGain", stopYawRateGain);
-  nhPrivate.getParam("maxYawRate", maxYawRate);
-  nhPrivate.getParam("maxSpeed", maxSpeed);
-  nhPrivate.getParam("maxAccel", maxAccel);
-  nhPrivate.getParam("switchTimeThre", switchTimeThre);
-  nhPrivate.getParam("dirDiffThre", dirDiffThre);
-  nhPrivate.getParam("stopDisThre", stopDisThre);
-  nhPrivate.getParam("slowDwnDisThre", slowDwnDisThre);
-  nhPrivate.getParam("useInclRateToSlow", useInclRateToSlow);
-  nhPrivate.getParam("inclRateThre", inclRateThre);
-  nhPrivate.getParam("slowRate1", slowRate1);
-  nhPrivate.getParam("slowRate2", slowRate2);
-  nhPrivate.getParam("slowTime1", slowTime1);
-  nhPrivate.getParam("slowTime2", slowTime2);
-  nhPrivate.getParam("useInclToStop", useInclToStop);
-  nhPrivate.getParam("inclThre", inclThre);
-  nhPrivate.getParam("stopTime", stopTime);
-  nhPrivate.getParam("noRotAtStop", noRotAtStop);
-  nhPrivate.getParam("noRotAtGoal", noRotAtGoal);
+  nhPrivate.getParam("stateEstimationTopic", stateEstimationTopic);
+  nhPrivate.getParam("desiredTrajFile", desiredTrajFile);
+  nhPrivate.getParam("executedTrajFile", executedTrajFile);
+  nhPrivate.getParam("saveTrajectory", saveTrajectory);
+  nhPrivate.getParam("saveTrajInverval", saveTrajInverval);
+  nhPrivate.getParam("waypointTest", waypointTest);
+  nhPrivate.getParam("waypointNum", waypointNum);
+  nhPrivate.getParam("waypointInterval", waypointInterval);
+  nhPrivate.getParam("waypointYaw", waypointYaw);
+  nhPrivate.getParam("waypointZ", waypointZ);
   nhPrivate.getParam("autonomyMode", autonomyMode);
-  nhPrivate.getParam("autonomySpeed", autonomySpeed);
+  nhPrivate.getParam("pubSkipNum", pubSkipNum);
+  nhPrivate.getParam("trackingCamBackward", trackingCamBackward);
+  nhPrivate.getParam("trackingCamXOffset", trackingCamXOffset);
+  nhPrivate.getParam("trackingCamYOffset", trackingCamYOffset);
+  nhPrivate.getParam("trackingCamZOffset", trackingCamZOffset);
+  nhPrivate.getParam("trackingCamScale", trackingCamScale);
+  nhPrivate.getParam("trackPitch", trackPitch);
+  nhPrivate.getParam("lookAheadScale", lookAheadScale);
+  nhPrivate.getParam("minLookAheadDis", minLookAheadDis);
+  nhPrivate.getParam("minSpeed", minSpeed);
+  nhPrivate.getParam("maxSpeed", maxSpeed);
+  nhPrivate.getParam("accXYGain", accXYGain);
+  nhPrivate.getParam("velXYGain", velXYGain);
+  nhPrivate.getParam("posZBoostScale", posZBoostScale);
+  nhPrivate.getParam("posXYGain", posXYGain);
+  nhPrivate.getParam("stopVelXYGain", stopVelXYGain);
+  nhPrivate.getParam("stopPosXYGain", stopPosXYGain);
+  nhPrivate.getParam("smoothIncrSpeed", smoothIncrSpeed);
+  nhPrivate.getParam("maxRollPitch", maxRollPitch);
+  nhPrivate.getParam("yawRateScale", yawRateScale);
+  nhPrivate.getParam("yawGain", yawGain);
+  nhPrivate.getParam("yawBoostScale", yawBoostScale);
+  nhPrivate.getParam("maxRateByYaw", maxRateByYaw);
+  nhPrivate.getParam("velZScale", velZScale);
+  nhPrivate.getParam("posZGain", posZGain);
+  nhPrivate.getParam("maxVelByPosZ", maxVelByPosZ);
+  nhPrivate.getParam("manualSpeedXY", manualSpeedXY);
+  nhPrivate.getParam("manualSpeedZ", manualSpeedZ);
+  nhPrivate.getParam("manualYawRate", manualYawRate);
+  nhPrivate.getParam("slowTurnRate", slowTurnRate);
+  nhPrivate.getParam("minSlowTurnCurv", minSlowTurnCurv);
+  nhPrivate.getParam("minSlowTurnInterval", minSlowTurnInterval);
+  nhPrivate.getParam("minStopRotInterval", minStopRotInterval);
+  nhPrivate.getParam("stopRotDelayTime", stopRotDelayTime);
+  nhPrivate.getParam("stopRotDis", stopRotDis);
+  nhPrivate.getParam("stopRotYaw1", stopRotYaw1);
+  nhPrivate.getParam("stopRotYaw2", stopRotYaw2);
+  nhPrivate.getParam("stopDis", stopDis);
+  nhPrivate.getParam("slowDis", slowDis);
+  nhPrivate.getParam("joyDeadband", joyDeadband);
   nhPrivate.getParam("joyToSpeedDelay", joyToSpeedDelay);
+  nhPrivate.getParam("shiftGoalAtStart", shiftGoalAtStart);
+  nhPrivate.getParam("goalX", goalX);
+  nhPrivate.getParam("goalY", goalY);
+  nhPrivate.getParam("goalZ", goalZ);
 
-  ros::Subscriber subOdom = nh.subscribe<nav_msgs::Odometry> ("/state_estimation", 5, odomHandler);
+  desiredSpeed = minSpeed;
+  if (autonomyMode) {
+    manualMode = false;
+    joyFwd = 1.0;
+  }
+
+  trackPath.poses.resize(1);
+  trackPath.poses[0].pose.position.x = 0;
+  trackPath.poses[0].pose.position.y = 0;
+  trackPath.poses[0].pose.position.z = 1.0;
+
+  if (saveTrajectory) {
+    desiredTrajFilePtr = fopen(desiredTrajFile.c_str(), "w");
+    executedTrajFilePtr = fopen(executedTrajFile.c_str(), "w");
+  }
+
+  ros::Subscriber subStateEstimation = nh.subscribe<nav_msgs::Odometry> (stateEstimationTopic, 5, stateEstimationHandler);
 
   ros::Subscriber subPath = nh.subscribe<nav_msgs::Path> ("/path", 5, pathHandler);
 
   ros::Subscriber subJoystick = nh.subscribe<sensor_msgs::Joy> ("/joy", 5, joystickHandler);
 
+  ros::Subscriber subGoal = nh.subscribe<geometry_msgs::PointStamped> ("/way_point", 5, goalHandler);
+
   ros::Subscriber subSpeed = nh.subscribe<std_msgs::Float32> ("/speed", 5, speedHandler);
 
-  ros::Subscriber subStop = nh.subscribe<std_msgs::Int8> ("/stop", 5, stopHandler);
+  ros::Publisher pubMarker = nh.advertise<visualization_msgs::Marker> ("/track_point_marker", 5);
+  pubMarkerPointer = &pubMarker;
 
-  ros::Publisher pubSpeed = nh.advertise<geometry_msgs::TwistStamped> ("/cmd_vel", 5);
-  geometry_msgs::TwistStamped cmd_vel;
-  cmd_vel.header.frame_id = "vehicle";
+  ros::Publisher pubOdometry = nh.advertise<nav_msgs::Odometry> ("/track_point_odom", 5);
+  pubOdometryPointer = &pubOdometry;
 
-  if (autonomyMode) {
-    joySpeed = autonomySpeed / maxSpeed;
+  ros::Publisher pubPath = nh.advertise<nav_msgs::Path> ("/track_path", 5);
+  pubPathPointer = &pubPath;
 
-    if (joySpeed < 0) joySpeed = 0;
-    else if (joySpeed > 1.0) joySpeed = 1.0;
-  }
+  ros::Publisher pubControl = nh.advertise<geometry_msgs::TwistStamped> ("/attitude_control", 5);
+  pubControlPointer = &pubControl;
 
-  ros::Rate rate(100);
-  bool status = ros::ok();
-  while (status) {
-    ros::spinOnce();
+  ros::Publisher pubAutoMode = nh.advertise<std_msgs::Float32> ("/auto_mode", 5);
+  pubAutoModePointer = &pubAutoMode;
 
-    if (pathInit) {
-      float vehicleXRel = cos(vehicleYawRec) * (vehicleX - vehicleXRec) 
-                        + sin(vehicleYawRec) * (vehicleY - vehicleYRec);
-      float vehicleYRel = -sin(vehicleYawRec) * (vehicleX - vehicleXRec) 
-                        + cos(vehicleYawRec) * (vehicleY - vehicleYRec);
+  ros::Publisher pubWaypoint = nh.advertise<geometry_msgs::PointStamped> ("/way_point", 5);
+  pubWaypointPointer = &pubWaypoint;
 
-      int pathSize = path.poses.size();
-      float endDisX = path.poses[pathSize - 1].pose.position.x - vehicleXRel;
-      float endDisY = path.poses[pathSize - 1].pose.position.y - vehicleYRel;
-      float endDis = sqrt(endDisX * endDisX + endDisY * endDisY);
+  tf::TransformBroadcaster tfBroadcaster;
+  tfBroadcasterPointer = &tfBroadcaster;
 
-      float disX, disY, dis;
-      while (pathPointID < pathSize - 1) {
-        disX = path.poses[pathPointID].pose.position.x - vehicleXRel;
-        disY = path.poses[pathPointID].pose.position.y - vehicleYRel;
-        dis = sqrt(disX * disX + disY * disY);
-        if (dis < lookAheadDis) {
-          pathPointID++;
-        } else {
-          break;
-        }
-      }
+  ros::spin();
 
-      disX = path.poses[pathPointID].pose.position.x - vehicleXRel;
-      disY = path.poses[pathPointID].pose.position.y - vehicleYRel;
-      dis = sqrt(disX * disX + disY * disY);
-      float pathDir = atan2(disY, disX);
+  if (saveTrajectory) {
+    fclose(desiredTrajFilePtr);
+    fclose(executedTrajFilePtr);
 
-      float dirDiff = vehicleYaw - vehicleYawRec - pathDir;
-      if (dirDiff > PI) dirDiff -= 2 * PI;
-      else if (dirDiff < -PI) dirDiff += 2 * PI;
-      if (dirDiff > PI) dirDiff -= 2 * PI;
-      else if (dirDiff < -PI) dirDiff += 2 * PI;
-
-      if (twoWayDrive) {
-        double time = ros::Time::now().toSec();
-        if (fabs(dirDiff) > PI / 2 && navFwd && time - switchTime > switchTimeThre) {
-          navFwd = false;
-          switchTime = time;
-        } else if (fabs(dirDiff) < PI / 2 && !navFwd && time - switchTime > switchTimeThre) {
-          navFwd = true;
-          switchTime = time;
-        }
-      }
-
-      float joySpeed2 = maxSpeed * joySpeed;
-      if (!navFwd) {
-        dirDiff += PI;
-        if (dirDiff > PI) dirDiff -= 2 * PI;
-        joySpeed2 *= -1;
-      }
-
-      if (fabs(vehicleSpeed) < 2.0 * maxAccel / 100.0) vehicleYawRate = -stopYawRateGain * dirDiff;
-      else vehicleYawRate = -yawRateGain * dirDiff;
-
-      if (vehicleYawRate > maxYawRate * PI / 180.0) vehicleYawRate = maxYawRate * PI / 180.0;
-      else if (vehicleYawRate < -maxYawRate * PI / 180.0) vehicleYawRate = -maxYawRate * PI / 180.0;
-
-      if (joySpeed2 == 0 && !autonomyMode) {
-        vehicleYawRate = maxYawRate * joyYaw * PI / 180.0;
-      } else if (pathSize <= 1 || (dis < stopDisThre && noRotAtGoal)) {
-        vehicleYawRate = 0;
-      }
-
-      if (pathSize <= 1) {
-        joySpeed2 = 0;
-      } else if (endDis / slowDwnDisThre < joySpeed) {
-        joySpeed2 *= endDis / slowDwnDisThre;
-      }
-
-      float joySpeed3 = joySpeed2;
-      if (odomTime < slowInitTime + slowTime1 && slowInitTime > 0) joySpeed3 *= slowRate1;
-      else if (odomTime < slowInitTime + slowTime1 + slowTime2 && slowInitTime > 0) joySpeed3 *= slowRate2;
-
-      if (fabs(dirDiff) < dirDiffThre && dis > stopDisThre) {
-        if (vehicleSpeed < joySpeed3) vehicleSpeed += maxAccel / 100.0;
-        else if (vehicleSpeed > joySpeed3) vehicleSpeed -= maxAccel / 100.0;
-      } else {
-        if (vehicleSpeed > 0) vehicleSpeed -= maxAccel / 100.0;
-        else if (vehicleSpeed < 0) vehicleSpeed += maxAccel / 100.0;
-      }
-
-      if (odomTime < stopInitTime + stopTime && stopInitTime > 0) {
-        vehicleSpeed = 0;
-        vehicleYawRate = 0;
-      }
-
-      if (safetyStop >= 1) vehicleSpeed = 0;
-      if (safetyStop >= 2) vehicleYawRate = 0;
-
-      pubSkipCount--;
-      if (pubSkipCount < 0) {
-        cmd_vel.header.stamp = ros::Time().fromSec(odomTime);
-        if (fabs(vehicleSpeed) <= maxAccel / 100.0) cmd_vel.twist.linear.x = 0;
-        else cmd_vel.twist.linear.x = vehicleSpeed;
-        cmd_vel.twist.angular.z = vehicleYawRate;
-        pubSpeed.publish(cmd_vel);
-
-        pubSkipCount = pubSkipNum;
-      }
-    }
-
-    status = ros::ok();
-    rate.sleep();
+    printf("\nTrajectories saved.\n\n");
   }
 
   return 0;
