@@ -26,6 +26,9 @@ using namespace std;
 
 const double PI = 3.1415926;
 
+string sim_name = "unity";
+string sensor_name = "lidar";
+
 double realtimeFactor = 1.0;
 double windCoeff = 0.05;
 double maxRollPitchRate = 20.0;
@@ -71,78 +74,91 @@ void controlHandler(const geometry_msgs::TwistStamped::ConstPtr& controlIn)
 }
 
 
-// void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
-// {
-//   if (!systemInited) {
-//     systemInitCount++;
-//     if (systemInitCount > systemDelay) {
-//       systemInited = true;
-//     }
-//     return;
-//   }
+void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
+{
+  if (sim_name == "unity") {
+    return;
+  }
 
-//   double scanTime = scanIn->header.stamp.toSec();
+  if (!systemInited) {
+    systemInitCount++;
+    if (systemInitCount > systemDelay) {
+      systemInited = true;
+    }
+    return;
+  }
 
-//   scanData->clear();
-//   scanData_tmp->clear();
-//   pcl::fromROSMsg(*scanIn, *scanData);
-//   pcl::removeNaNFromPointCloud(*scanData, *scanData, scanInd);
+  double scanTime = scanIn->header.stamp.toSec();
 
-//   int scanDataSize = scanData->points.size();
+  scanData->clear();
+  scanData_tmp->clear();
+  pcl::fromROSMsg(*scanIn, *scanData);
+  pcl::removeNaNFromPointCloud(*scanData, *scanData, scanInd);
 
-//   for (int i = 0; i < scanDataSize; i++)
-//   {
-//     float pointX1 = scanData->points[i].x  * cos(vehicleYaw) - scanData->points[i].y * sin(vehicleYaw);
-//     float pointY1 = scanData->points[i].x  * sin(vehicleYaw) + scanData->points[i].y * cos(vehicleYaw);
-//     float pointZ1 = scanData->points[i].z;
+  int scanDataSize = scanData->points.size();
+  if (sensor_name == "lidar") {
+    for (int i = 0; i < scanDataSize; i++)
+    {
+      float pointX1 = scanData->points[i].x  * cos(vehicleYaw) - scanData->points[i].y * sin(vehicleYaw);
+      float pointY1 = scanData->points[i].x  * sin(vehicleYaw) + scanData->points[i].y * cos(vehicleYaw);
+      float pointZ1 = scanData->points[i].z;
 
-//     // float pointX2 = pointX1 * cos(vehiclePitch) + pointZ1 * sin(vehiclePitch);
-//     // float pointY2 = pointY1;
-//     // float pointZ2 = - pointX1 * sin(vehiclePitch) + pointZ1 * cos(vehiclePitch);
+      float pointX3 = pointX1 + vehicleX;
+      float pointY3 = pointY1 + vehicleY;
+      float pointZ3 = pointZ1 + vehicleZ;
+      scanData->points[i].x = pointX3;
+      scanData->points[i].y = pointY3;
+      scanData->points[i].z = pointZ3;
 
-//     // pointX2 = pointX2;
-//     // pointY2 = pointY2 * cos(vehicleRoll) - pointZ2 * sin(vehicleRoll);
-//     // pointZ2 = pointY2 * sin(vehicleRoll) + pointZ2 * cos(vehicleRoll);
+      // if (pointZ3 > 0.1) {
+      //   scanData_tmp->push_back(scanData->points[i]);
+      // }
+    }
+  } else {
+    for (int i = 0; i < scanDataSize; i++)
+    {
+    float pointX1 = scanData->points[i].z;
+    float pointY1 = - scanData->points[i].x;
+    float pointZ1 = - scanData->points[i].y;
 
-//     // float pointX3 = pointX2 + vehicleX;
-//     // float pointY3 = pointY2 + vehicleY;
-//     // float pointZ3 = pointZ2 + vehicleZ;
+    float pointX2 = pointX1;
+    float pointY2 = pointY1  * cos(vehicleRoll) - pointZ1 * sin(vehicleRoll);
+    float pointZ2 = pointY1  * sin(vehicleRoll) + pointZ1 * cos(vehicleRoll);       
 
-//     // float pointX3 = scanData->points[i].x + vehicleX;
-//     // float pointY3 = scanData->points[i].y + vehicleY;
-//     // float pointZ3 = scanData->points[i].z + vehicleZ;
+    float pointX3 = pointX2  * cos(vehiclePitch) + pointZ2 * sin(vehiclePitch);
+    float pointY3 = pointY2;
+    float pointZ3 = - pointX2  * sin(vehiclePitch) + pointZ2 * cos(vehiclePitch);
 
-//     // float pointX2 = pointX1 * cos(vehiclePitch) - pointZ1 * sin(vehiclePitch);
-//     // float pointY2 = pointY1;
-//     // float pointZ2 = pointX1 * sin(vehiclePitch) + pointZ1 * cos(vehiclePitch);
+    float pointX4 = pointX3  * cos(vehicleYaw) - pointY3 * sin(vehicleYaw);
+    float pointY4 = pointX3  * sin(vehicleYaw) + pointY3 * cos(vehicleYaw);
+    float pointZ4 = pointZ3;
 
-//     float pointX3 = pointX1 + vehicleX;
-//     float pointY3 = pointY1 + vehicleY;
-//     float pointZ3 = pointZ1 + vehicleZ;
-//     scanData->points[i].x = pointX3;
-//     scanData->points[i].y = pointY3;
-//     scanData->points[i].z = pointZ3;
-//     if (pointZ3 > 0.1) {
-//       scanData_tmp->push_back(scanData->points[i]);
-//     }
-//   }
+    float pointX5 = pointX4 + vehicleX;
+    float pointY5 = pointY4 + vehicleY;
+    float pointZ5 = pointZ4 + vehicleZ;
+    scanData->points[i].x = pointX5;
+    scanData->points[i].y = pointY5;
+    scanData->points[i].z = pointZ5;
+    }
+  }
 
-//   // publish 5Hz registered scan messages
-//   sensor_msgs::PointCloud2 scanData2;
-//   pcl::toROSMsg(*scanData_tmp, scanData2);
-//   scanData2.header.stamp = ros::Time().now();
-//   scanData2.header.frame_id = "map";
-//   pubScanPointer->publish(scanData2);
-//   // scanData_tmp->clear();
+
+  // publish 5Hz registered scan messages
+  sensor_msgs::PointCloud2 scanData2;
+  pcl::toROSMsg(*scanData_tmp, scanData2);
+  scanData2.header.stamp = ros::Time().now();
+  scanData2.header.frame_id = "map";
+  pubScanPointer->publish(scanData2);
+  // scanData_tmp->clear();
   
-//   // publish 5Hz registered scan messages
-//   // sensor_msgs::PointCloud2 scanData3;
-//   // pcl::toROSMsg(*scanData_gnd, scanData3);
-//   // scanData3.header.stamp = ros::Time().now();
-//   // scanData3.header.frame_id = "map";
-//   // pubgndPointer->publish(scanData3);
-//   // scanData_gnd->clear();
-// }
+  // publish 5Hz registered scan messages
+  // sensor_msgs::PointCloud2 scanData3;
+  // pcl::toROSMsg(*scanData_gnd, scanData3);
+  // scanData3.header.stamp = ros::Time().now();
+  // scanData3.header.frame_id = "map";
+  // pubgndPointer->publish(scanData3);
+  // scanData_gnd->clear();
+}
 
 int main(int argc, char** argv)
 {
@@ -159,9 +175,12 @@ int main(int argc, char** argv)
   nhPrivate.getParam("vehicleY", vehicleY);
   nhPrivate.getParam("vehicleZ", vehicleZ);
   nhPrivate.getParam("vehicleYaw", vehicleYaw);
+  nhPrivate.getParam("sim_name", sim_name);
+  nhPrivate.getParam("sensor_name", sensor_name);
+
 
   ros::Subscriber subControl = nh.subscribe<geometry_msgs::TwistStamped> ("/attitude_control", 5, controlHandler);
-  // ros::Subscriber subScan = nh.subscribe<sensor_msgs::PointCloud2>("/registered_scan", 2, scanHandler);
+  ros::Subscriber subScan = nh.subscribe<sensor_msgs::PointCloud2>("/registered_scan", 2, scanHandler);
 
   ros::Publisher pubVehicleOdom = nh.advertise<nav_msgs::Odometry> ("/state_estimation", 5);
 
@@ -174,21 +193,22 @@ int main(int argc, char** argv)
   odomTrans.frame_id_ = "map";
   odomTrans.child_frame_id_ = "vehicle";
 
-  // ros::Publisher pubModelState = nh.advertise<gazebo_msgs::ModelState> ("/gazebo/set_model_state", 5);
-  // gazebo_msgs::ModelState cameraState;
-  // cameraState.model_name = "rgbd_camera";
-  // gazebo_msgs::ModelState lidarState;
-  // lidarState.model_name = "lidar";
-  // gazebo_msgs::ModelState robotState;
-  // robotState.model_name = "robot";
+  ros::Publisher pubModelStateUnity = nh.advertise<geometry_msgs::PoseStamped>("/unity_sim/set_model_state", 5);
+  geometry_msgs::PoseStamped robotStateUnity;
+  robotStateUnity.header.frame_id = "map";
 
-  // ros::Publisher pubScan = nh.advertise<sensor_msgs::PointCloud2>("/registered_scan", 2);
-  // pubScanPointer = &pubScan;
-  // ros::Publisher pubGND = nh.advertise<sensor_msgs::PointCloud2>("/terrain_map", 2);
-  // pubgndPointer = &pubGND;
-  ros::Publisher pubModelState = nh.advertise<geometry_msgs::PoseStamped>("/unity_sim/set_model_state", 5);
-  geometry_msgs::PoseStamped robotState;
-  robotState.header.frame_id = "map";
+  ros::Publisher pubModelStateGazebo = nh.advertise<gazebo_msgs::ModelState> ("/gazebo/set_model_state", 5);
+  gazebo_msgs::ModelState cameraState;
+  cameraState.model_name = "rgbd_camera";
+  gazebo_msgs::ModelState lidarState;
+  lidarState.model_name = "lidar";
+  gazebo_msgs::ModelState robotStateGazebo;
+  robotStateGazebo.model_name = "robot";
+
+  ros::Publisher pubScan = nh.advertise<sensor_msgs::PointCloud2>("/registered_scan", 2);
+  pubScanPointer = &pubScan;
+  ros::Publisher pubGND = nh.advertise<sensor_msgs::PointCloud2>("/terrain", 2);
+  pubgndPointer = &pubGND;
 
   printf("\nSimulation started.\n\n");
 
@@ -261,30 +281,38 @@ int main(int argc, char** argv)
     odomTrans.setOrigin(tf::Vector3(vehicleX, vehicleY, vehicleZ));
     tfBroadcaster.sendTransform(odomTrans);
 
-    robotState.header.stamp = timeNow;
+    // robotState.header.stamp = timeNow;
 
     geoQuat = tf::createQuaternionMsgFromRollPitchYaw(vehicleRoll, sensorPitch + vehiclePitch, vehicleYaw);
 
     geometry_msgs::Quaternion geoQuat_lidar = tf::createQuaternionMsgFromRollPitchYaw(0, 0, vehicleYaw);
 
-    // publish 200Hz Gazebo model state messages
-    // cameraState.pose.orientation = geoQuat;
-    // cameraState.pose.position.x = vehicleX;
-    // cameraState.pose.position.y = vehicleY;
-    // cameraState.pose.position.z = vehicleZ;
-    // pubModelState.publish(cameraState);
-    
-    robotState.pose.orientation = geoQuat;
-    robotState.pose.position.x = vehicleX;
-    robotState.pose.position.y = vehicleY;
-    robotState.pose.position.z = vehicleZ;
-    pubModelState.publish(robotState);
+    if (sim_name == "unity") {
+      robotStateUnity.pose.orientation = geoQuat;
+      robotStateUnity.pose.position.x = vehicleX;
+      robotStateUnity.pose.position.y = vehicleY;
+      robotStateUnity.pose.position.z = vehicleZ;
+      pubModelStateUnity.publish(robotStateUnity);      
+    } else {
+      // publish 200Hz Gazebo model state messages
+      cameraState.pose.orientation = geoQuat;
+      cameraState.pose.position.x = vehicleX;
+      cameraState.pose.position.y = vehicleY;
+      cameraState.pose.position.z = vehicleZ;
+      pubModelStateGazebo.publish(cameraState);
+      
+      robotStateGazebo.pose.orientation = geoQuat;
+      robotStateGazebo.pose.position.x = vehicleX;
+      robotStateGazebo.pose.position.y = vehicleY;
+      robotStateGazebo.pose.position.z = vehicleZ;
+      pubModelStateGazebo.publish(robotStateGazebo);
 
-    // lidarState.pose.orientation = geoQuat_lidar;
-    // lidarState.pose.position.x = vehicleX;
-    // lidarState.pose.position.y = vehicleY;
-    // lidarState.pose.position.z = vehicleZ;
-    // pubModelState.publish(lidarState);
+      lidarState.pose.orientation = geoQuat_lidar;
+      lidarState.pose.position.x = vehicleX;
+      lidarState.pose.position.y = vehicleY;
+      lidarState.pose.position.z = vehicleZ;
+      pubModelStateGazebo.publish(lidarState);      
+    }
 
 
     status = ros::ok();

@@ -1,6 +1,7 @@
 <launch>
 
-  <arg name="world_name" default="unity"/>
+  <arg name="sim_name" default="unity"/>
+  <arg name="sensor_name" default="lidar"/>
   <arg name="vehicleHeight" default="0.75"/>
   <arg name="cameraOffsetZ" default="0.235"/>
   <arg name="vehicleX" default="0"/>
@@ -25,7 +26,7 @@
   <include file="$(find ps3joy)/launch/ps3.launch" />
 
   <include file="$(find waypoint_converter)/launch/waypoint_converter.launch" >
-    <arg name="world_name" value="$(arg world_name)"/>
+    <arg name="world_name" value="$(arg sim_name)"/>
   </include>
 
   <include file="$(find local_planner)/launch/local_planner.launch" >
@@ -56,6 +57,8 @@
     <arg name="vehicleY" value="$(arg vehicleY)" />
     <arg name="vehicleZ" value="$(arg vehicleZ)" />
     <arg name="vehicleYaw" value="$(arg vehicleYaw)" />
+    <arg name="sim_name" value="$(arg sim_name)"/>
+    <arg name="sensor_name" value="$(arg sensor_name)"/>
   </include>
 
   <!-- <include file="$(find sensor_scan_generation)/launch/sensor_scan_generation.launch" /> -->
@@ -65,7 +68,7 @@
   </include> -->
 
   <include file="$(find visualization_tools)/launch/visualization_tools.launch" >
-    <arg name="world_name" value="$(arg world_name)"/>
+    <arg name="world_name" value="$(arg sim_name)"/>
   </include>
 
   <!-- <include file="$(find bbox_calculation)/launch/bbox_broadcast.launch" /> -->

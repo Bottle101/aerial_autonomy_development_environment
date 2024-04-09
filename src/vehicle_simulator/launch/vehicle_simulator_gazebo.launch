@@ -11,8 +11,10 @@
   <arg name="headless" default="false"/>
   <arg name="debug" default="false"/>
   <arg name="verbose" default="false"/>
-  <arg name="world_name" default="office"/>
+  <arg name="map_name" default="office"/>
   <arg name="use_gazebo" default="true"/>
+  <arg name="sim_name" default="unity"/>
+  <arg name="sensor_name" default="lidar"/>
 
   <group if="$(arg use_gazebo)">
     <include file="$(find gazebo_ros)/launch/empty_world.launch" >
@@ -22,7 +24,7 @@
       <arg name="headless" value="$(arg headless)"/>
       <arg name="debug" value="$(arg debug)"/>
       <arg name="verbose" value="$(arg verbose)"/>
-      <arg name="world_name" value="$(find vehicle_simulator)/world/$(arg world_name).world"/>
+      <arg name="world_name" value="$(find vehicle_simulator)/world/$(arg map_name).world"/>
     </include>
 
     <param name="rgbd_camera_description" command="$(find xacro)/xacro --inorder '$(find vehicle_simulator)/urdf/rgbd_camera.urdf.xacro'" />
@@ -45,6 +47,8 @@
     <param name="vehicleY" value="$(arg vehicleY)" />
     <param name="vehicleZ" value="$(arg vehicleZ)" />
     <param name="vehicleYaw" value="$(arg vehicleYaw)" />
+    <param name="sim_name" value="$(arg sim_name)" />
+    <param name="sensor_name" value="$(arg sensor_name)" />
   </node>
 
 </launch>

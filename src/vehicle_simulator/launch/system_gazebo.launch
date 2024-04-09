@@ -1,5 +1,6 @@
 <launch>
-
+  <arg name="sim_name" default="gazebo"/>
+  <arg name="sensor_name" default="lidar"/>
   <arg name="stateEstimationTopic" default="/state_estimation"/>
   <arg name="depthCloudTopic" default="/rgbd_camera/depth/points"/>
   <arg name="depthCloudDelay" default="0"/>
@@ -18,7 +19,7 @@
   <arg name="vehicleYaw" default="0"/>
   <arg name="use_gazebo" default="true"/>
   <arg name="gazebo_gui" default="false"/>
-  <arg name="world_name" default="indoor"/>
+  <arg name="map_name" default="garage"/>
   <arg name="config" default="outdoor"/>
   <arg name="realtime_factor" default="1.0"/>
   <arg name="checkTerrainConn" default="false"/>
@@ -54,8 +55,10 @@
     <arg name="vehicleYaw" value="$(arg vehicleYaw)" />
     <arg name="use_gazebo" value="$(arg use_gazebo)" />
     <arg name="gui" value="$(arg gazebo_gui)" />
-    <arg name="world_name" value="$(arg world_name)" />
+    <arg name="map_name" value="$(arg map_name)" />
     <arg name="realtime_factor" value="$(arg realtime_factor)" />
+    <arg name="sim_name" value="$(arg sim_name)"/>
+    <arg name="sensor_name" value="$(arg sensor_name)"/>
   </include>
 
   <node launch-prefix="nice" pkg="rviz" type="rviz" name="rvizAA" args="-d $(find vehicle_simulator)/rviz/vehicle_simulator_gazebo.rviz" respawn="true"/>

@@ -1,4 +1,6 @@
 <launch>
+  <arg name="sim_name" default="unity"/>
+  <arg name="sensor_name" default="lidar"/>
 
   <arg name="sensorOffsetX" default="0"/>
   <arg name="sensorOffsetY" default="0"/>
@@ -44,6 +46,8 @@
     <param name="smoothRateIncl" value="$(arg smoothRateIncl)" />
     <param name="InclFittingThre" value="$(arg InclFittingThre)" />
     <param name="maxIncl" value="$(arg maxIncl)" />
+    <param name="sim_name" value="$(arg sim_name)" />
+    <param name="sensor_name" value="$(arg sensor_name)" />
   </node>
 
 </launch>
