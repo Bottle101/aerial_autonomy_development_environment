@@ -18,8 +18,8 @@
   <arg name="vehicleYaw" default="0"/>
   <arg name="use_gazebo" default="true"/>
   <arg name="gazebo_gui" default="false"/>
-  <arg name="world_name" default="garage"/>
-  <arg name="config" default="indoor"/>
+  <arg name="world_name" default="indoor"/>
+  <arg name="config" default="outdoor"/>
   <arg name="realtime_factor" default="1.0"/>
   <arg name="checkTerrainConn" default="false"/>
 
@@ -46,7 +46,7 @@
     <arg name="checkTerrainConn" value="$(arg checkTerrainConn)"/>
   </include>
 
-  <include file="$(find vehicle_simulator)/launch/vehicle_simulator.launch" >
+  <include file="$(find vehicle_simulator)/launch/vehicle_simulator_gazebo.launch" >
     <arg name="sensorPitch" value="$(arg depthCamPitchOffset)" />
     <arg name="vehicleX" value="$(arg vehicleX)" />
     <arg name="vehicleY" value="$(arg vehicleY)" />

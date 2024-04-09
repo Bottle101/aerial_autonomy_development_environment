@@ -242,27 +242,31 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloud2)
   downSizeFilter.filter(*laserCloudDwz);
 
   int laserCloudDwzSize = laserCloudDwz->points.size();
-  for (int i = 0; i < laserCloudDwzSize; i++) {
-      float pointX1 = laserCloudDwz->points[i].z;
-      float pointY1 = -laserCloudDwz->points[i].x;
-      float pointZ1 = -laserCloudDwz->points[i].y;
+  // for (int i = 0; i < laserCloudDwzSize; i++) {
+  //     // float pointX1 = laserCloudDwz->points[i].z;
+  //     // float pointY1 = -laserCloudDwz->points[i].x;
+  //     // float pointZ1 = -laserCloudDwz->points[i].y;
 
-      float pointX2 = pointX1 * cosDepthCamPitch + pointZ1 * sinDepthCamPitch + depthCamXOffset;
-      float pointY2 = pointY1 + depthCamYOffset;
-      float pointZ2 = -pointX1 * sinDepthCamPitch + pointZ1 * cosDepthCamPitch + depthCamZOffset;
+  //     // float pointX2 = pointX1 * cosDepthCamPitch + pointZ1 * sinDepthCamPitch + depthCamXOffset;
+  //     // float pointY2 = pointY1 + depthCamYOffset;
+  //     // float pointZ2 = -pointX1 * sinDepthCamPitch + pointZ1 * cosDepthCamPitch + depthCamZOffset;
 
-      float pointX3 = pointX2;
-      float pointY3 = pointY2 * cosVehicleRoll - pointZ2 * sinVehicleRoll;
-      float pointZ3 = pointY2 * sinVehicleRoll + pointZ2 * cosVehicleRoll;
+  //     // float pointX3 = pointX2;
+  //     // float pointY3 = pointY2 * cosVehicleRoll - pointZ2 * sinVehicleRoll;
+  //     // float pointZ3 = pointY2 * sinVehicleRoll + pointZ2 * cosVehicleRoll;
 
-      float pointX4 = pointX3 * cosVehiclePitch + pointZ3 * sinVehiclePitch;
-      float pointY4 = pointY3;
-      float pointZ4 = -pointX3 * sinVehiclePitch + pointZ3 * cosVehiclePitch;
+  //     // float pointX4 = pointX3 * cosVehiclePitch + pointZ3 * sinVehiclePitch;
+  //     // float pointY4 = pointY3;
+  //     // float pointZ4 = -pointX3 * sinVehiclePitch + pointZ3 * cosVehiclePitch;
 
-      laserCloudDwz->points[i].x = pointX4 * cosVehicleYaw - pointY4 * sinVehicleYaw + vehicleX;
-      laserCloudDwz->points[i].y = pointX4 * sinVehicleYaw + pointY4 * cosVehicleYaw + vehicleY;
-      laserCloudDwz->points[i].z = pointZ4 + vehicleZ;
-  }
+  //     // laserCloudDwz->points[i].x = pointX4 * cosVehicleYaw - pointY4 * sinVehicleYaw + vehicleX;
+  //     // laserCloudDwz->points[i].y = pointX4 * sinVehicleYaw + pointY4 * cosVehicleYaw + vehicleY;
+  //     // laserCloudDwz->points[i].z = pointZ4 + vehicleZ;
+
+  //     laserCloudDwz->points[i].x = pointX4 * cosVehicleYaw - pointY4 * sinVehicleYaw + vehicleX;
+  //     laserCloudDwz->points[i].y = pointX4 * sinVehicleYaw + pointY4 * cosVehicleYaw + vehicleY;
+  //     laserCloudDwz->points[i].z = pointZ4 + vehicleZ;
+  // }
 
   if (keepSurrCloud) {
     for (int i = 0; i < laserCloudDwzSize; i++) {

@@ -1,7 +1,7 @@
 <launch>
 
   <arg name="stateEstimationTopic" default="/state_estimation"/>
-  <arg name="depthCloudTopic" default="/rgbd_camera/depth/points"/>
+  <arg name="depthCloudTopic" default="/registered_scan"/>
   <arg name="autonomyMode" default="false"/>
   <arg name="depthCloudDelay" default="0"/>
   <arg name="depthCamPitchOffset" default="0"/>
@@ -82,7 +82,7 @@
     <param name="lookAheadScale" type="double" value="0.2" />
     <param name="minLookAheadDis" type="double" value="0.2" />
     <param name="minSpeed" type="double" value="0.5" />
-    <param name="maxSpeed" type="double" value="2.0" />
+    <param name="maxSpeed" type="double" value="1.0" />
     <param name="accXYGain" type="double" value="0.05" />
     <param name="velXYGain" type="double" value="0.4" />
     <param name="posXYGain" type="double" value="0.05" />
