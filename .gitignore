@@ -22,6 +22,10 @@ src/vehicle_simulator/mesh/matterport/preview/*
 
 src/vehicle_simulator/log/*
 
+src/local_planner/paths/*
+
+!src/local_planner/paths/path_files.zip
+
 !download_environments.sh
 
 !readme.txt
