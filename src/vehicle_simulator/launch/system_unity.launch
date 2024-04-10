@@ -1,7 +1,9 @@
 <launch>
 
   <arg name="sim_name" default="unity"/>
-  <arg name="sensor_name" default="lidar"/>
+  <arg name="map_name" default="urban_city"/>
+  <arg name="config" default="outdoor"/>
+
   <arg name="vehicleHeight" default="0.75"/>
   <arg name="cameraOffsetZ" default="0.235"/>
   <arg name="vehicleX" default="0"/>
@@ -9,6 +11,7 @@
   <arg name="vehicleZ" default="1.5"/>
   <arg name="vehicleYaw" default="0"/>
   <arg name="checkTerrainConn" default="true"/>
+  <arg name="sensor_name" default="lidar"/>
 
   <arg name="stateEstimationTopic" default="/state_estimation"/>
   <arg name="depthCloudTopic" default="/registered_scan"/>
@@ -29,7 +32,7 @@
     <arg name="world_name" value="$(arg sim_name)"/>
   </include>
 
-  <include file="$(find local_planner)/launch/local_planner.launch" >
+  <include file="$(find local_planner)/launch/local_planner_$(arg config).launch" >
     <arg name="stateEstimationTopic" value="$(arg stateEstimationTopic)" />
     <arg name="depthCloudTopic" value="$(arg depthCloudTopic)" />
     <arg name="depthCloudDelay" value="$(arg depthCloudDelay)" />
@@ -44,6 +47,7 @@
     <arg name="trackingCamScale" value="$(arg trackingCamScale)" />
     <arg name="goalX" value="$(arg vehicleX)"/>
     <arg name="goalY" value="$(arg vehicleY)"/>
+    <arg name="sim_name" value="$(arg sim_name)"/>
   </include>
 
   <include file="$(find terrain_analysis)/launch/terrain_analysis.launch" />
@@ -67,8 +71,8 @@
     <arg name="cameraOffsetZ" value="$(arg cameraOffsetZ)"/>
   </include> -->
 
-  <include file="$(find visualization_tools)/launch/visualization_tools.launch" >
-    <arg name="world_name" value="$(arg sim_name)"/>
+  <include file="$(find visualization_tools)/launch/visualization_tools_unity.launch" >
+    <arg name="map_name" value="$(arg map_name)"/>
   </include>
 
   <!-- <include file="$(find bbox_calculation)/launch/bbox_broadcast.launch" /> -->
@@ -83,6 +87,6 @@
 
   <!-- <node launch-prefix="nice" pkg="rviz" type="rviz" name="rvizGA" args="-d $(find vehicle_simulator)/rviz/vehicle_simulator.rviz" respawn="true"/> -->
 
-  <node launch-prefix="nice" pkg="rviz" type="rviz" name="rvizAA" args="-d $(find vehicle_simulator)/rviz/vehicle_simulator_gazebo.rviz" respawn="true"/>
+  <node launch-prefix="nice" pkg="rviz" type="rviz" name="rvizAA" args="-d $(find vehicle_simulator)/rviz/vehicle_simulator_unity.rviz" respawn="true"/>
 
 </launch>

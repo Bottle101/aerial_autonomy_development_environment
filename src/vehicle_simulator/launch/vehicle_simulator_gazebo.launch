@@ -13,7 +13,7 @@
   <arg name="verbose" default="false"/>
   <arg name="map_name" default="office"/>
   <arg name="use_gazebo" default="true"/>
-  <arg name="sim_name" default="unity"/>
+  <arg name="sim_name" default="gazebo"/>
   <arg name="sensor_name" default="lidar"/>
 
   <group if="$(arg use_gazebo)">

@@ -18,6 +18,8 @@
   <arg name="goalX" default="0"/>
   <arg name="goalY" default="0"/>
   <arg name="goalZ" default="1.0"/>
+  <arg name="sim_name" default="unity"/>
+
 
   <node pkg="local_planner" type="localPlanner" name="localPlanner" required="true" output="screen">
     <param name="pathFolder" type="string" value="$(find local_planner)/paths" />
@@ -58,6 +60,7 @@
     <param name="goalX" value="$(arg goalX)" />
     <param name="goalY" value="$(arg goalY)" />
     <param name="goalZ" value="$(arg goalZ)" />
+    <param name="sim_name" value="$(arg sim_name)" />
   </node>
 
   <node pkg="local_planner" type="pathFollower" name="pathFollower" required="true" output="screen">

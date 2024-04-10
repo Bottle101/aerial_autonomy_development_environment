@@ -6,5 +6,9 @@
     "python.analysis.extraPaths": [
         "/home/bottle/hbt_ws/Mar15Demo/navigation_demo_unity/autonomous_exploration_development_environment/devel/lib/python3/dist-packages",
         "/opt/ros/noetic/lib/python3/dist-packages"
-    ]
+    ],
+    "files.associations": {
+        "*.cpp": "cpp",
+        "string": "cpp"
+    }
 }

@@ -95,6 +95,8 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
   pcl::fromROSMsg(*scanIn, *scanData);
   pcl::removeNaNFromPointCloud(*scanData, *scanData, scanInd);
 
+  // ROS_WARN("scanHandler: %d", scanData->points.size());
+
   int scanDataSize = scanData->points.size();
   if (sensor_name == "lidar") {
     for (int i = 0; i < scanDataSize; i++)
@@ -145,7 +147,7 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
 
   // publish 5Hz registered scan messages
   sensor_msgs::PointCloud2 scanData2;
-  pcl::toROSMsg(*scanData_tmp, scanData2);
+  pcl::toROSMsg(*scanData, scanData2);
   scanData2.header.stamp = ros::Time().now();
   scanData2.header.frame_id = "map";
   pubScanPointer->publish(scanData2);
@@ -180,7 +182,7 @@ int main(int argc, char** argv)
 
 
   ros::Subscriber subControl = nh.subscribe<geometry_msgs::TwistStamped> ("/attitude_control", 5, controlHandler);
-  ros::Subscriber subScan = nh.subscribe<sensor_msgs::PointCloud2>("/registered_scan", 2, scanHandler);
+  ros::Subscriber subScan = nh.subscribe<sensor_msgs::PointCloud2>("/velodyne_points", 2, scanHandler);
 
   ros::Publisher pubVehicleOdom = nh.advertise<nav_msgs::Odometry> ("/state_estimation", 5);
 
