@@ -16,7 +16,7 @@ unzip ./src/local_planner/paths/path_files.zip -d ./src/local_planner/paths
 catkin_make
 ```
 
-Download any of our [Unity environment models](https://drive.google.com/drive/folders/1bmxdT6Oxzt0_0tohye2br7gqTnkMaq20?usp=share_link) (have not uploaded) and unzip the files to the `'src/vehicle_simulator/mesh'` folder. 
+Download `'urban_city'` of our [Unity environment models](https://drive.google.com/drive/folders/1bmxdT6Oxzt0_0tohye2br7gqTnkMaq20?usp=share_link) (have not uploaded) and unzip the files to the `'src/vehicle_simulator/mesh'` folder. 
 
 ```bash
 # launch
@@ -33,5 +33,22 @@ Now, you can send a waypoint by clicking the 'Waypoint' button in RVIZ and then 
 
 # launch
 roslaunch vehicle_simulator system_gazebo.launch
+```
 
+## Change Environments
+
+### Unity:
+
+Change the **Line 4** in `system_unity.launch`
+
+```bash
+  <arg name="map_name" default="SCENE_TO_USE"/>
+```
+
+### Gazebo:
+
+Change the **Line 3** in `system_gazebo.launch`
+
+```bash
+  <arg name="map_name" default="SCENE_TO_USE"/>
 ```
