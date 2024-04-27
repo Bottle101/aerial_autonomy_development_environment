@@ -45,6 +45,13 @@ Change the **Line 4** in `system_unity.launch`
   <arg name="map_name" default="SCENE_TO_USE"/>
 ```
 
+Change `system_bring_up.sh`
+
+```bash
+./src/vehicle_simulator/mesh/YourEnvName/environment/YourEnvName.x86_64
+```
+
+
 ### Gazebo:
 
 Change the **Line 3** in `system_gazebo.launch`

@@ -78,6 +78,7 @@ FILE *trajFilePtr = NULL;
 
 void odometryHandler(const nav_msgs::Odometry::ConstPtr& odom)
 {
+  // ROS_WARN("Odometry received.");
   systemTime = odom->header.stamp.toSec();
 
   double roll, pitch, yaw;
@@ -139,6 +140,7 @@ void odometryHandler(const nav_msgs::Odometry::ConstPtr& odom)
   trajectory2.header.stamp = odom->header.stamp;
   trajectory2.header.frame_id = "map";
   pubTrajectoryPtr->publish(trajectory2);
+  // ROS_WARN("Trajectory published.");
 }
 
 void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloudIn)
@@ -158,6 +160,9 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloudIn)
   pcl::fromROSMsg(*laserCloudIn, *laserCloud);
 
   *exploredVolumeCloud += *laserCloud;
+
+  // std::vector<int> indices;
+  // pcl::removeNaNFromPointCloud(*exploredVolumeCloud, *exploredVolumeCloud, indices);
 
   exploredVolumeCloud2->clear();
   exploredVolumeDwzFilter.setInputCloud(exploredVolumeCloud);
