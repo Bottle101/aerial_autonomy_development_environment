@@ -1,9 +1,9 @@
-<library path="lib/libwaypoint_rviz_plugin">
-    <class name="rviz/WaypointTool"
-           type="rviz::WaypointTool"
-           base_class_type="rviz::Tool">
-        <description>
-            A tool for sending waypoints
-        </description>
-    </class>
+<library path="lib/libnavpoint_rviz_plugin">
+  <class name="rviz_plugins/Goal3DTool"
+         type="rviz::Goal3DTool"
+         base_class_type="rviz::Tool">
+    <description>
+      Tool for setting 3D goal
+    </description>
+  </class>
 </library>

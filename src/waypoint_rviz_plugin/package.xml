@@ -1,30 +1,33 @@
-<?xml version="1.0"?>
-<package format="2">
-  <name>waypoint_rviz_plugin</name>
-  <version>0.0.1</version>
-  <description>Waypoint RVIZ Plugin</description>
-  <maintainer email="ccao1@andrew.cmu.edu">Chao Cao</maintainer>
-  <license>BSD</license>
+<package>
+  <name> navpoint_rviz_plugin </name>
+  <description>
+
+    A tool for sending free space navigation waypoint to Aerial Dev Env
+
+  </description>
+  <version>0.1.0</version>
+  <maintainer email="zhangji@cmu.edu">Ji Zhang</maintainer>
+  <maintainer email="botao@umd.edu">Botao He</maintainer>
+  <license>LGPLv3</license>
+  <url>http://ros.org/wiki/rviz_plugins</url>
 
   <buildtool_depend>catkin</buildtool_depend>
 
-  <build_depend>roscpp</build_depend>
-  <build_depend>rospy</build_depend>
-  <build_depend>rviz</build_depend>
-  <build_depend>qtbase5-dev</build_depend>
+  <build_depend>rviz            </build_depend>
+  <build_depend>roscpp          </build_depend>
+  <build_depend>multi_map_server</build_depend>
+  <build_depend>qtbase5-dev     </build_depend>
+  <build_depend>message_runtime </build_depend>
 
-  <build_export_depend>roscpp</build_export_depend>
-  <build_export_depend>rospy</build_export_depend>
-  <build_export_depend>rviz</build_export_depend>
-
-  <exec_depend>roscpp</exec_depend>
-  <exec_depend>rospy</exec_depend>
-  <exec_depend>rviz</exec_depend>
-  <exec_depend>libqt5-core</exec_depend>
-  <exec_depend>libqt5-gui</exec_depend>
-  <exec_depend>libqt5-widgets</exec_depend>
+  <run_depend>rviz              </run_depend>
+  <run_depend>multi_map_server  </run_depend>
+  <run_depend>message_runtime   </run_depend>
+  <run_depend>roscpp            </run_depend>
+  <run_depend>libqt5-core       </run_depend>
+  <run_depend>libqt5-gui        </run_depend>
+  <run_depend>libqt5-widgets    </run_depend>
 
   <export>
-    <rviz plugin="${prefix}/plugin_description.xml"/>
+      <rviz plugin="${prefix}/plugin_description.xml"/>
   </export>
 </package>

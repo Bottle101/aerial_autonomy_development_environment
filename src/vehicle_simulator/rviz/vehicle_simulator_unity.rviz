@@ -14,7 +14,8 @@ Panels:
   - Class: rviz/Selection
     Name: Selection
   - Class: rviz/Tool Properties
-    Expanded: ~
+    Expanded:
+      - /3D Nav Goal1
     Name: Tool Properties
     Splitter Ratio: 0.5886790156364441
   - Class: rviz/Views
@@ -259,8 +260,8 @@ Visualization Manager:
   Tools:
     - Class: rviz/Interact
       Hide Inactive Objects: true
-    - Class: rviz/WaypointTool
-      Topic: waypoint
+    - Class: rviz_plugins/Goal3DTool
+      Topic: goal
   Value: true
   Views:
     Current:
