@@ -20,7 +20,7 @@ src/vehicle_simulator/mesh/matterport/segmentations/*
 
 src/vehicle_simulator/mesh/matterport/preview/*
 
-!src/vehicle_simulator/log
+!log/
 
 src/vehicle_simulator/log/*
 
