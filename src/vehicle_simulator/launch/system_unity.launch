@@ -1,7 +1,7 @@
 <launch>
 
   <arg name="sim_name" default="unity"/>
-  <arg name="map_name" default="factory"/>
+  <arg name="map_name" default="factory_low_resolution"/>
   <arg name="config" default="outdoor"/>
 
   <arg name="vehicleHeight" default="0.75"/>
@@ -25,12 +25,9 @@
   <arg name="trackingCamYOffset" default="0"/>
   <arg name="trackingCamZOffset" default="0"/>
   <arg name="trackingCamScale" default="1.0"/>
+  <arg name="realtime_factor" default="1.0"/>
 
   <include file="$(find ps3joy)/launch/ps3.launch" />
-
-  <include file="$(find waypoint_converter)/launch/waypoint_converter.launch" >
-    <arg name="world_name" value="$(arg sim_name)"/>
-  </include>
 
   <include file="$(find local_planner)/launch/local_planner_$(arg config).launch" >
     <arg name="stateEstimationTopic" value="$(arg stateEstimationTopic)" />
@@ -56,20 +53,15 @@
     <arg name="checkTerrainConn" value="$(arg checkTerrainConn)"/>
   </include>
 
-  <include file="$(find vehicle_simulator)/launch/vehicle_simulator.launch" >
+  <include file="$(find vehicle_simulator)/launch/vehicle_simulator_unity.launch" >
     <arg name="vehicleX" value="$(arg vehicleX)" />
     <arg name="vehicleY" value="$(arg vehicleY)" />
     <arg name="vehicleZ" value="$(arg vehicleZ)" />
     <arg name="vehicleYaw" value="$(arg vehicleYaw)" />
     <arg name="sim_name" value="$(arg sim_name)"/>
     <arg name="sensor_name" value="$(arg sensor_name)"/>
+    <arg name="realtime_factor" value="$(arg realtime_factor)" />
   </include>
-
-  <!-- <include file="$(find sensor_scan_generation)/launch/sensor_scan_generation.launch" /> -->
-
-  <!-- <include file="$(find semantic_scan_generation)/launch/semantic_scan_generation.launch" >
-    <arg name="cameraOffsetZ" value="$(arg cameraOffsetZ)"/>
-  </include> -->
 
   <include file="$(find visualization_tools)/launch/visualization_tools_unity.launch" >
     <arg name="map_name" value="$(arg map_name)"/>

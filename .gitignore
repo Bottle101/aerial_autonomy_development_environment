@@ -24,6 +24,8 @@ src/vehicle_simulator/log/*
 
 src/local_planner/paths/*
 
+src/ROS-TCP-Endpoint/src/ros_tcp_endpoint/__pycache__/*
+
 !src/local_planner/paths/path_files.zip
 
 !download_environments.sh

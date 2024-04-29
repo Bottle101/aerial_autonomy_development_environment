@@ -24,8 +24,10 @@
   <arg name="smoothRateIncl" default="0.5"/>
   <arg name="InclFittingThre" default="0.2"/>
   <arg name="maxIncl" default="30.0"/>
+  <arg name="realtime_factor" default="1.0"/>
 
   <node pkg="vehicle_simulator" type="vehicleSimulator" name="vehicleSimulator" output="screen" required="true">
+    <param name="realtimeFactor" value="$(arg realtime_factor)" />
     <param name="sensorOffsetX" value="$(arg sensorOffsetX)" />
     <param name="sensorOffsetY" value="$(arg sensorOffsetY)" />
     <param name="vehicleHeight" value="$(arg vehicleHeight)" />
