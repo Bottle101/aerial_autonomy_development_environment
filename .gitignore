@@ -20,6 +20,10 @@ src/vehicle_simulator/mesh/matterport/segmentations/*
 
 src/vehicle_simulator/mesh/matterport/preview/*
 
+!src/vehicle_simulator/log/
+
+src/vehicle_simulator/log/*
+
 src/local_planner/paths/*
 
 src/ROS-TCP-Endpoint/src/ros_tcp_endpoint/__pycache__/*
