@@ -182,7 +182,13 @@ int main(int argc, char** argv)
 
 
   ros::Subscriber subControl = nh.subscribe<geometry_msgs::TwistStamped> ("/attitude_control", 5, controlHandler);
-  ros::Subscriber subScan = nh.subscribe<sensor_msgs::PointCloud2>("/velodyne_points", 2, scanHandler);
+
+  string scanTopic = "/velodyne_points";
+  if (sensor_name != "lidar") {
+    scanTopic = "/rgbd_camera/depth/points";
+  }
+
+  ros::Subscriber subScan = nh.subscribe<sensor_msgs::PointCloud2>(scanTopic, 2, scanHandler);
 
   ros::Publisher pubVehicleOdom = nh.advertise<nav_msgs::Odometry> ("/state_estimation", 5);
 

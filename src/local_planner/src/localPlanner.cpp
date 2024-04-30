@@ -32,6 +32,7 @@ using namespace std;
 const double PI = 3.1415926;
 
 string sim_name = "unity";
+string sensor_name = "lidar";
 
 // general parameters
 string pathFolder;
@@ -244,33 +245,34 @@ void laserCloudHandler(const sensor_msgs::PointCloud2ConstPtr& laserCloud2)
   downSizeFilter.filter(*laserCloudDwz);
 
   int laserCloudDwzSize = laserCloudDwz->points.size();
-  if (sim_name != "unity") {
-    for (int i = 0; i < laserCloudDwzSize; i++) {
-        float pointX1 = laserCloudDwz->points[i].z;
-        float pointY1 = -laserCloudDwz->points[i].x;
-        float pointZ1 = -laserCloudDwz->points[i].y;
+  // if (sim_name != "unity") {
+  //   ROS_WARN("sim_name and sensor_name are not unity and lidar, respectively.");
+  //   for (int i = 0; i < laserCloudDwzSize; i++) {
+  //       float pointX1 = laserCloudDwz->points[i].z;
+  //       float pointY1 = -laserCloudDwz->points[i].x;
+  //       float pointZ1 = -laserCloudDwz->points[i].y;
 
-        float pointX2 = pointX1 * cosDepthCamPitch + pointZ1 * sinDepthCamPitch + depthCamXOffset;
-        float pointY2 = pointY1 + depthCamYOffset;
-        float pointZ2 = -pointX1 * sinDepthCamPitch + pointZ1 * cosDepthCamPitch + depthCamZOffset;
+  //       float pointX2 = pointX1 * cosDepthCamPitch + pointZ1 * sinDepthCamPitch + depthCamXOffset;
+  //       float pointY2 = pointY1 + depthCamYOffset;
+  //       float pointZ2 = -pointX1 * sinDepthCamPitch + pointZ1 * cosDepthCamPitch + depthCamZOffset;
 
-        float pointX3 = pointX2;
-        float pointY3 = pointY2 * cosVehicleRoll - pointZ2 * sinVehicleRoll;
-        float pointZ3 = pointY2 * sinVehicleRoll + pointZ2 * cosVehicleRoll;
+  //       float pointX3 = pointX2;
+  //       float pointY3 = pointY2 * cosVehicleRoll - pointZ2 * sinVehicleRoll;
+  //       float pointZ3 = pointY2 * sinVehicleRoll + pointZ2 * cosVehicleRoll;
 
-        float pointX4 = pointX3 * cosVehiclePitch + pointZ3 * sinVehiclePitch;
-        float pointY4 = pointY3;
-        float pointZ4 = -pointX3 * sinVehiclePitch + pointZ3 * cosVehiclePitch;
+  //       float pointX4 = pointX3 * cosVehiclePitch + pointZ3 * sinVehiclePitch;
+  //       float pointY4 = pointY3;
+  //       float pointZ4 = -pointX3 * sinVehiclePitch + pointZ3 * cosVehiclePitch;
 
-        laserCloudDwz->points[i].x = pointX4 * cosVehicleYaw - pointY4 * sinVehicleYaw + vehicleX;
-        laserCloudDwz->points[i].y = pointX4 * sinVehicleYaw + pointY4 * cosVehicleYaw + vehicleY;
-        laserCloudDwz->points[i].z = pointZ4 + vehicleZ;
+  //       laserCloudDwz->points[i].x = pointX4 * cosVehicleYaw - pointY4 * sinVehicleYaw + vehicleX;
+  //       laserCloudDwz->points[i].y = pointX4 * sinVehicleYaw + pointY4 * cosVehicleYaw + vehicleY;
+  //       laserCloudDwz->points[i].z = pointZ4 + vehicleZ;
 
-        // laserCloudDwz->points[i].x = pointX4 * cosVehicleYaw - pointY4 * sinVehicleYaw + vehicleX;
-        // laserCloudDwz->points[i].y = pointX4 * sinVehicleYaw + pointY4 * cosVehicleYaw + vehicleY;
-        // laserCloudDwz->points[i].z = pointZ4 + vehicleZ;
-    }
-  }
+  //       // laserCloudDwz->points[i].x = pointX4 * cosVehicleYaw - pointY4 * sinVehicleYaw + vehicleX;
+  //       // laserCloudDwz->points[i].y = pointX4 * sinVehicleYaw + pointY4 * cosVehicleYaw + vehicleY;
+  //       // laserCloudDwz->points[i].z = pointZ4 + vehicleZ;
+  //   }
+  // }
 
 
   if (keepSurrCloud) {
@@ -606,6 +608,7 @@ int main(int argc, char** argv)
   nhPrivate.getParam("goalY", goalY);
   nhPrivate.getParam("goalZ", goalZ);
   nhPrivate.getParam("sim_name", sim_name);
+  nhPrivate.getParam("sensor_name", sensor_name);
 
   if (goalZ > maxElev) goalZ = maxElev;
   if (autonomyMode) {
