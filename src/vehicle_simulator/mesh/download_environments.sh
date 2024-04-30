@@ -6,7 +6,7 @@ echo ""
 echo "Downloading simulation environments..."
 echo ""
 
-ggID='1W_KicQUrEEv15_zqN-ZQpjdSuxew-u6p'
+ggID='1GMT8tptb3nAb87F8eFfmIgjma6Bu0reV'
 ggURL='https://drive.usercontent.google.com/download'
 
 filename="$(curl -sc /tmp/gcokie "${ggURL}?id=${ggID}" | grep -o '="uc-name.*</span>' | sed 's/.*">//;s/<.a> .*//')"
