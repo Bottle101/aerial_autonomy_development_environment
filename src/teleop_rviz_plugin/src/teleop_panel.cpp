@@ -121,16 +121,17 @@ void TeleopPanel::sendVel()
     joy.buttons.push_back( 0 );
     joy.buttons.push_back( 0 );
 
-    if (angular_velocity_/(linear_velocity_+0.0001) > 1.0 || angular_velocity_/(linear_velocity_+0.0001) < -1.0)
+    if (angular_velocity_/(linear_velocity_+0.0001) > 1.7 || angular_velocity_/(linear_velocity_+0.0001) < -1.7)
     {
-      if (angular_velocity_ > 0)
-      {
-        joy.axes[0] = 1.0;
-      }
-      else if (angular_velocity_ < 0)
-      {
-        joy.axes[0] = -1.0;
-      }
+      // if (angular_velocity_ > 0)
+      // {
+      //   joy.axes[0] = 1.0;
+      // }
+      // else if (angular_velocity_ < 0)
+      // {
+      //   joy.axes[0] = -1.0;
+      // }
+      joy.axes[0] = angular_velocity_;
       joy.axes[3] = 0.0;
       joy.axes[4] = 0.0;
       joy.axes[5] = -1.0;

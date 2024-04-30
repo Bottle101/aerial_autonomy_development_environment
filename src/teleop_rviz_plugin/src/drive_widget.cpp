@@ -71,10 +71,11 @@ void DriveWidget::paintEvent( QPaintEvent* event )
 
   painter.drawRect( QRect( hpad , vpad, size, size ));
 
-  painter.drawLine( hpad, height() / 2, hpad + size, height() / 2 );
+  // painter.drawLine( hpad, height() / 2, hpad + size, height() / 2 );
   painter.drawLine( hpad + size / 2, vpad, hpad + size / 2, vpad + size );
-  painter.drawLine( hpad + size / 2, vpad + size / 2, hpad, vpad);
-  painter.drawLine( hpad + size / 2, vpad + size / 2, hpad + size, vpad);
+  painter.drawLine( hpad, vpad + (size / 2)*1.588, hpad + size, vpad + (size / 2)*(1.0-0.588));
+  painter.drawLine( hpad, vpad + (size / 2)*(1.0-0.588), hpad + size, vpad + (size / 2)*1.588);
+  // painter.drawLine( hpad + size / 2, vpad + size / 2, hpad + size, vpad);
 
   // painter.setPen(QPen(Qt::darkGray, 3));
   // painter.drawLine( hpad + size + 20, vpad, hpad + size + 20, vpad + size );
