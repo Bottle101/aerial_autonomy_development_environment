@@ -1,6 +1,6 @@
 #include "drive_widget.h"
 #include "ros/ros.h"
-#include <iostream>
+#include <algorithm>
 
 namespace teleop_rviz_plugin
 {
@@ -73,6 +73,8 @@ void DriveWidget::paintEvent( QPaintEvent* event )
 
   painter.drawLine( hpad, height() / 2, hpad + size, height() / 2 );
   painter.drawLine( hpad + size / 2, vpad, hpad + size / 2, vpad + size );
+  painter.drawLine( hpad + size / 2, vpad + size / 2, hpad, vpad);
+  painter.drawLine( hpad + size / 2, vpad + size / 2, hpad + size, vpad);
 
   // painter.setPen(QPen(Qt::darkGray, 3));
   // painter.drawLine( hpad + size + 20, vpad, hpad + size + 20, vpad + size );
@@ -99,14 +101,25 @@ void DriveWidget::paintEvent( QPaintEvent* event )
     QPointF joystick[ 2 ];
     joystick[ 0 ].setX( hpad + size / 2 );
     joystick[ 0 ].setY( vpad + size / 2 );
-    // if (x_mouse_ > vpad + size / 2) {
-    //   joystick[ 1 ].setX( std::min( hpad + size, x_mouse_ ) );
-    // }
-    joystick[ 1 ].setX( x_mouse_ );
-    joystick[ 1 ].setY( y_mouse_ );
+
+    float x, y;
+    if (x_mouse_ > hpad + size / 2) {
+      x = std::min( hpad + size, int(x_mouse_) );
+      joystick[ 1 ].setX( x );
+    } else {
+      x = std::max( hpad, int(x_mouse_) );
+      joystick[ 1 ].setX( x );
+    }
+    if (y_mouse_ > vpad + size / 2) {
+      y = std::min( vpad + size, int(y_mouse_) );
+      joystick[ 1 ].setY( y );
+    } else {
+      y = std::max( vpad, int(y_mouse_) );
+      joystick[ 1 ].setY( y );
+    }
 
     painter.drawPolyline( joystick, 2 );
-    painter.drawEllipse( x_mouse_ - 10, y_mouse_ - 10, 20, 20 );
+    painter.drawEllipse( x - 10, y - 10, 20, 20 );
   }
 
 }
