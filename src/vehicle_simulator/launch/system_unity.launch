@@ -27,6 +27,10 @@
   <arg name="trackingCamScale" default="1.0"/>
   <arg name="realtime_factor" default="1.0"/>
 
+  <include file="$(find launch_unity)/launch/launch_unity.launch" >
+    <arg name="map_name" value="$(arg map_name)"/>
+  </include>
+
   <include file="$(find ps3joy)/launch/ps3.launch" />
 
   <include file="$(find local_planner)/launch/local_planner_$(arg config).launch" >

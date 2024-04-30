@@ -1,0 +1,8 @@
+<launch>
+<arg name="map_name" default="factory"/>
+
+<!-- launch_unity-->
+    <node pkg="launch_unity" name="launch_unity_node" type="launch_unity.py" output="screen">
+        <param name="map_name" value="$(arg map_name)"/>
+    </node>
+</launch>
