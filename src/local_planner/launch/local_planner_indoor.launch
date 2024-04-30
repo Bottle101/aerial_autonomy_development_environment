@@ -19,6 +19,7 @@
   <arg name="goalY" default="0"/>
   <arg name="goalZ" default="1.0"/>
   <arg name="sim_name" default="unity"/>
+  <arg name="sensor_name" default="lidar"/>
 
 
   <node pkg="local_planner" type="localPlanner" name="localPlanner" required="true" output="screen">
@@ -61,6 +62,7 @@
     <param name="goalY" value="$(arg goalY)" />
     <param name="goalZ" value="$(arg goalZ)" />
     <param name="sim_name" value="$(arg sim_name)" />
+    <param name="sensor_name" value="$(arg sensor_name)" />
   </node>
 
   <node pkg="local_planner" type="pathFollower" name="pathFollower" required="true" output="screen">
