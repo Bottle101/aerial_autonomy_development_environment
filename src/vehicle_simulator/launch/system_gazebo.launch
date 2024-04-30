@@ -1,7 +1,7 @@
 <launch>
   <arg name="sim_name" default="gazebo"/>
-  <arg name="map_name" default="forest"/>
-  <arg name="sensor_name" default="cam"/> <!-- Only work for Gazebo -->
+  <arg name="map_name" default="indoor"/>
+  <arg name="sensor_name" default="lidar"/> <!-- Only work for Gazebo, lidar or depthcam -->
   <arg name="config" default="outdoor"/>
   <arg name="stateEstimationTopic" default="/state_estimation"/>
   <arg name="depthCloudTopic" default="/registered_scan"/>
