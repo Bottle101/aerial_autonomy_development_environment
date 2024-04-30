@@ -1,5 +1,6 @@
 #include "drive_widget.h"
 #include "ros/ros.h"
+#include <iostream>
 
 namespace teleop_rviz_plugin
 {
@@ -98,6 +99,9 @@ void DriveWidget::paintEvent( QPaintEvent* event )
     QPointF joystick[ 2 ];
     joystick[ 0 ].setX( hpad + size / 2 );
     joystick[ 0 ].setY( vpad + size / 2 );
+    // if (x_mouse_ > vpad + size / 2) {
+    //   joystick[ 1 ].setX( std::min( hpad + size, x_mouse_ ) );
+    // }
     joystick[ 1 ].setX( x_mouse_ );
     joystick[ 1 ].setY( y_mouse_ );
 
