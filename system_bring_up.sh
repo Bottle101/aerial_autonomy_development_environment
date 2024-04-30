@@ -1,5 +1,5 @@
 #!/bin/bash
-ENV="factory_low_resolution" #factory, villege, urban_city, town, old_town, office1, office2
+ENV="factory" #factory, villege, urban_city, town, old_town, office1, office2
 SCRIPT_DIR="$( cd "$( dirname "${BASH_SOURCE[0]}" )" &> /dev/null && pwd )"
 
 
