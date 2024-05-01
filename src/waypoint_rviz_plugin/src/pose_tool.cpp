@@ -80,6 +80,7 @@ Pose3DTool::processMouseEvent(ViewportMouseEvent& event)
 {
   if (state_ == Orientation && event.wheel_delta) {
     state_ = Height;
+    pos_.z = 0.5;
       // ROS_WARN("Height: %d", event.left());
   }
   
