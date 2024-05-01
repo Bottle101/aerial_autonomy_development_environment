@@ -20,7 +20,8 @@ Download `'urban_city'` of our [Unity environment models](https://drive.google.c
 
 ```bash
 # launch
-./system_bring_up.sh
+source ./devel/setup.bash  
+roslaunch vehicle_simulator system_unity.launch  
 ```
 
 Now, you can send a waypoint by clicking the 'Waypoint' button in RVIZ and then clicking a point to set the waypoint. Otherwise you can conduct assistive teleoperation by moving the virtual joystick on the right, hold the left-button of the mouse to control the direction, scroll up or down the mouse wheel to adjust the altitude. The drone will automatically avoid obstacles during navigation.
@@ -32,6 +33,7 @@ Now, you can send a waypoint by clicking the 'Waypoint' button in RVIZ and then 
 ./src/vehicle_simulator/mesh/download_environments.sh
 
 # launch
+source ./devel/setup.bash 
 roslaunch vehicle_simulator system_gazebo.launch
 ```
 
@@ -43,12 +45,6 @@ Change the **Line 4** in `system_unity.launch`
 
 ```bash
   <arg name="map_name" default="SCENE_TO_USE"/>
-```
-
-Change `system_bring_up.sh`
-
-```bash
-./src/vehicle_simulator/mesh/YourEnvName/environment/YourEnvName.x86_64
 ```
 
 
