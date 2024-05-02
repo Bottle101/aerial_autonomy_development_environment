@@ -55,3 +55,11 @@ Change the **Line 3** in `system_gazebo.launch`
 ```bash
   <arg name="map_name" default="SCENE_TO_USE"/>
 ```
+
+## Change Config
+
+Change the **Line 5** in `system_unity.launch` or `system_gazebo.launch`
+
+```bash
+  <arg name="config" default="CONFIG"/> # indoor or outdoor
+```
