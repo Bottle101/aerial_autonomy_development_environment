@@ -1,7 +1,7 @@
 <launch>
 
   <arg name="sim_name" default="unity"/>
-  <arg name="map_name" default="office_building_2"/>
+  <arg name="map_name" default="factory"/>
   <arg name="config" default="outdoor"/>
 
   <arg name="vehicleHeight" default="0.75"/>

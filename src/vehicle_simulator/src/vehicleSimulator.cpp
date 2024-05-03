@@ -92,6 +92,7 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
 
   scanData->clear();
   scanData_tmp->clear();
+
   pcl::fromROSMsg(*scanIn, *scanData);
   pcl::removeNaNFromPointCloud(*scanData, *scanData, scanInd);
 
@@ -113,12 +114,13 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
       scanData->points[i].z = pointZ3;
 
       // if (pointZ3 > 0.1) {
-      //   scanData_tmp->push_back(scanData->points[i]);
+      scanData_tmp->push_back(scanData->points[i]);
       // }
     }
   } else {
     for (int i = 0; i < scanDataSize; i++)
     {
+    
     float pointX1 = scanData->points[i].z;
     float pointY1 = - scanData->points[i].x;
     float pointZ1 = - scanData->points[i].y;
@@ -139,22 +141,24 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
     float pointY5 = pointY4 + vehicleY;
     float pointZ5 = pointZ4 + vehicleZ;
 
-    if (pointX5 > 29.0) {
-      continue;
-    }
-
     scanData->points[i].x = pointX5;
     scanData->points[i].y = pointY5;
     scanData->points[i].z = pointZ5;
     scanData->points[i].intensity = 0;
+
+
+    // if (scanData->points[i].z < 29.0) {
+      scanData_tmp->push_back(scanData->points[i]);
+    // }
     }
   }
 
 
+
   // publish 5Hz registered scan messages
   sensor_msgs::PointCloud2 scanData2;
-  pcl::toROSMsg(*scanData, scanData2);
-  scanData2.header.stamp = ros::Time().now();
+  pcl::toROSMsg(*scanData_tmp, scanData2);
+  scanData2.header.stamp = scanIn->header.stamp;
   scanData2.header.frame_id = "map";
   pubScanPointer->publish(scanData2);
   // scanData_tmp->clear();
@@ -193,7 +197,7 @@ int main(int argc, char** argv)
   if (sensor_name != "lidar") {
     scanTopic = "/rgbd_camera/depth/points";
   }
-
+  ROS_WARN("sensor_name: %s", sensor_name.c_str());
   ros::Subscriber subScan = nh.subscribe<sensor_msgs::PointCloud2>(scanTopic, 2, scanHandler);
 
   ros::Publisher pubVehicleOdom = nh.advertise<nav_msgs::Odometry> ("/state_estimation", 5);
