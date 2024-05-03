@@ -141,6 +141,7 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
     scanData->points[i].x = pointX5;
     scanData->points[i].y = pointY5;
     scanData->points[i].z = pointZ5;
+    scanData->points[i].intensity = 0;
     }
   }
 

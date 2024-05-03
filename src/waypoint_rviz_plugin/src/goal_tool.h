@@ -34,6 +34,7 @@
 # include <QObject>
 
 # include <ros/ros.h>
+#include <nav_msgs/Odometry.h>
 
 # include "pose_tool.h"
 #endif
@@ -51,6 +52,9 @@ public:
   Goal3DTool();
   virtual ~Goal3DTool() {}
   virtual void onInitialize();
+
+  void OdomCallBack(const nav_msgs::OdometryConstPtr& msg);
+  double init_z = 0.0;
 
 protected:
   virtual void onPoseSet(double x, double y, double z, double theta);
