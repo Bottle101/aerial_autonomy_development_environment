@@ -138,6 +138,11 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
     float pointX5 = pointX4 + vehicleX;
     float pointY5 = pointY4 + vehicleY;
     float pointZ5 = pointZ4 + vehicleZ;
+
+    if (pointX5 > 29.0) {
+      continue;
+    }
+
     scanData->points[i].x = pointX5;
     scanData->points[i].y = pointY5;
     scanData->points[i].z = pointZ5;

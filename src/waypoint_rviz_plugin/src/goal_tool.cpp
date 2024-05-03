@@ -67,6 +67,7 @@ void Goal3DTool::updateTopic()
 {
   wp_pub_ = nh_.advertise<geometry_msgs::PointStamped>("/way_point", 5);
   pub_joy_ = nh_.advertise<sensor_msgs::Joy>("/joy", 5);
+  sub_odom_ = nh_.subscribe("/state_estimation", 5, &Goal3DTool::OdomCallBack, this);
 }
 
 void Goal3DTool::onPoseSet(double x, double y, double z, double theta)
