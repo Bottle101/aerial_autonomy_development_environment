@@ -65,6 +65,10 @@ pcl::PointCloud<pcl::PointXYZI>::Ptr scanData(new pcl::PointCloud<pcl::PointXYZI
 pcl::PointCloud<pcl::PointXYZI>::Ptr scanData_tmp(new pcl::PointCloud<pcl::PointXYZI>());
 pcl::PointCloud<pcl::PointXYZI>::Ptr scanData_gnd(new pcl::PointCloud<pcl::PointXYZI>());
 
+// pcl::PointCloud<pcl::PointXYZ>::Ptr scanData(new pcl::PointCloud<pcl::PointXYZ>());
+// pcl::PointCloud<pcl::PointXYZ>::Ptr scanData_tmp(new pcl::PointCloud<pcl::PointXYZ>());
+// pcl::PointCloud<pcl::PointXYZ>::Ptr scanData_gnd(new pcl::PointCloud<pcl::PointXYZ>());
+
 void controlHandler(const geometry_msgs::TwistStamped::ConstPtr& controlIn)
 {
   vehicleRollCmd = controlIn->twist.linear.x;
@@ -94,11 +98,13 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
   scanData_tmp->clear();
 
   pcl::fromROSMsg(*scanIn, *scanData);
-  pcl::removeNaNFromPointCloud(*scanData, *scanData, scanInd);
+  // pcl::removeNaNFromPointCloud(*scanData, *scanData, scanInd);
 
   // ROS_WARN("scanHandler: %d", scanData->points.size());
 
   int scanDataSize = scanData->points.size();
+
+    // ROS_WARN("Time diff: %f", ros::Time::now().toSec() - scanIn->header.stamp.toSec());
   if (sensor_name == "lidar") {
     for (int i = 0; i < scanDataSize; i++)
     {
@@ -144,12 +150,11 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
     scanData->points[i].x = pointX5;
     scanData->points[i].y = pointY5;
     scanData->points[i].z = pointZ5;
-    scanData->points[i].intensity = 0;
 
 
-    // if (scanData->points[i].z < 29.0) {
+    if (scanData->points[i].z < 29.0) {
       scanData_tmp->push_back(scanData->points[i]);
-    // }
+    }
     }
   }
 
@@ -197,7 +202,7 @@ int main(int argc, char** argv)
   if (sensor_name != "lidar") {
     scanTopic = "/rgbd_camera/depth/points";
   }
-  ROS_WARN("sensor_name: %s", sensor_name.c_str());
+  // ROS_WARN("sensor_name: %s", sensor_name.c_str());
   ros::Subscriber subScan = nh.subscribe<sensor_msgs::PointCloud2>(scanTopic, 2, scanHandler);
 
   ros::Publisher pubVehicleOdom = nh.advertise<nav_msgs::Odometry> ("/state_estimation", 5);
@@ -223,7 +228,7 @@ int main(int argc, char** argv)
   gazebo_msgs::ModelState robotStateGazebo;
   robotStateGazebo.model_name = "robot";
 
-  ros::Publisher pubScan = nh.advertise<sensor_msgs::PointCloud2>("/registered_scan", 2);
+  ros::Publisher pubScan = nh.advertise<sensor_msgs::PointCloud2>("/registered_scan", 5);
   pubScanPointer = &pubScan;
   ros::Publisher pubGND = nh.advertise<sensor_msgs::PointCloud2>("/terrain", 2);
   pubgndPointer = &pubGND;

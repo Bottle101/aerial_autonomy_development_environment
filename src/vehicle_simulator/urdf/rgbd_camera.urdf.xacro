@@ -24,12 +24,12 @@
 
   <gazebo reference="rgbd_camera">
     <sensor type="depth" name="rgbd_camera">
-      <update_rate>20.0</update_rate>
+      <update_rate>15.0</update_rate>
       <camera name="head">
         <horizontal_fov>1.65</horizontal_fov>
         <image>
-          <width>320</width>
-          <height>180</height>
+          <width>160</width>
+          <height>90</height>
           <format>R8G8B8</format>
         </image>
         <clip>
