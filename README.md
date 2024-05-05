@@ -16,7 +16,7 @@ unzip ./src/local_planner/paths/path_files.zip -d ./src/local_planner/paths
 catkin_make
 ```
 
-Download `'urban_city'` of our [Unity environment models](https://drive.google.com/drive/folders/1bmxdT6Oxzt0_0tohye2br7gqTnkMaq20?usp=share_link) (have not uploaded) and unzip the files to the `'src/vehicle_simulator/mesh'` folder. 
+Download `'factory'` of our [Unity environment models](https://drive.google.com/drive/folders/1bmxdT6Oxzt0_0tohye2br7gqTnkMaq20?usp=share_link) and unzip the files to the `'src/vehicle_simulator/mesh'` folder. 
 
 ```bash
 # launch
@@ -24,7 +24,8 @@ source ./devel/setup.bash
 roslaunch vehicle_simulator system_unity.launch  
 ```
 
-Now, you can send a waypoint by clicking the 'Waypoint' button in RVIZ and then clicking a point to set the waypoint. Otherwise you can conduct assistive teleoperation by moving the virtual joystick on the right, hold the left-button of the mouse to control the direction, scroll up or down the mouse wheel to adjust the altitude. The drone will automatically avoid obstacles during navigation.
+Now, users can send a waypoint by 3 step: 1. click the 'Waypoint3D' button in RVIZ; 2. click a point in the map, hold the left mouse button and scroll the mouse wheel to adjust the altitude;  3. release the mouse.  Users can also use virtual joystick in the left side to achieve assistive teleoperation.
+
 
 **(Optional)** If you want to use **Gazebo**, please do the following steps:
 
@@ -38,23 +39,13 @@ roslaunch vehicle_simulator system_gazebo.launch
 ```
 
 ## Change Environments
-
-### Unity:
-
-Change the **Line 4** in `system_unity.launch`
+For Unity, change the **Line 4** in `system_unity.launch`
 
 ```bash
   <arg name="map_name" default="SCENE_TO_USE"/>
 ```
 
-
-### Gazebo:
-
-Change the **Line 3** in `system_gazebo.launch`
-
-```bash
-  <arg name="map_name" default="SCENE_TO_USE"/>
-```
+For Gazebo, due to the time synchronization issue, currently we only support Lidar for locolization and mapping, but you could still use images from the depth camera for CV tasks by subscribing `/rgbd_camera/depth/points`.
 
 ## Change Config
 
