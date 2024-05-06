@@ -117,7 +117,7 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
       scanData->points[i].z = pointZ3;
 
       // if (pointZ3 > 0.1) {
-      scanData_tmp->push_back(scanData->points[i]);
+      // scanData_tmp->push_back(scanData->points[i]);
       // }
     }
   } else {
