@@ -1,8 +1,8 @@
 <launch>
 
   <arg name="sim_name" default="unity"/>
-  <arg name="map_name" default="factory"/>
-  <arg name="config" default="outdoor"/>
+  <arg name="map_name" default="office_building_2"/>
+  <arg name="config" default="indoor"/>
 
   <arg name="vehicleHeight" default="0.75"/>
   <arg name="cameraOffsetZ" default="0.235"/>

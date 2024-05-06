@@ -1,7 +1,7 @@
 <launch>
   <arg name="sim_name" default="gazebo"/>
   <arg name="map_name" default="garage"/>
-  <arg name="config" default="outdoor"/>
+  <arg name="config" default="indoor"/>
   <arg name="stateEstimationTopic" default="/state_estimation"/>
   <arg name="depthCloudTopic" default="/registered_scan"/>
   <arg name="depthCloudDelay" default="0"/>
