@@ -96,15 +96,12 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
 
   scanData->clear();
   scanData_tmp->clear();
-
   pcl::fromROSMsg(*scanIn, *scanData);
-  // pcl::removeNaNFromPointCloud(*scanData, *scanData, scanInd);
+  pcl::removeNaNFromPointCloud(*scanData, *scanData, scanInd);
 
   // ROS_WARN("scanHandler: %d", scanData->points.size());
 
   int scanDataSize = scanData->points.size();
-
-    // ROS_WARN("Time diff: %f", ros::Time::now().toSec() - scanIn->header.stamp.toSec());
   if (sensor_name == "lidar") {
     for (int i = 0; i < scanDataSize; i++)
     {
@@ -126,7 +123,6 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
   } else {
     for (int i = 0; i < scanDataSize; i++)
     {
-    
     float pointX1 = scanData->points[i].z;
     float pointY1 = - scanData->points[i].x;
     float pointZ1 = - scanData->points[i].y;
@@ -146,24 +142,17 @@ void scanHandler(const sensor_msgs::PointCloud2::ConstPtr& scanIn)
     float pointX5 = pointX4 + vehicleX;
     float pointY5 = pointY4 + vehicleY;
     float pointZ5 = pointZ4 + vehicleZ;
-
     scanData->points[i].x = pointX5;
     scanData->points[i].y = pointY5;
     scanData->points[i].z = pointZ5;
-
-
-    if (scanData->points[i].z < 29.0) {
-      scanData_tmp->push_back(scanData->points[i]);
-    }
     }
   }
 
 
-
   // publish 5Hz registered scan messages
   sensor_msgs::PointCloud2 scanData2;
-  pcl::toROSMsg(*scanData_tmp, scanData2);
-  scanData2.header.stamp = scanIn->header.stamp;
+  pcl::toROSMsg(*scanData, scanData2);
+  scanData2.header.stamp = ros::Time().now();
   scanData2.header.frame_id = "map";
   pubScanPointer->publish(scanData2);
   // scanData_tmp->clear();
@@ -202,7 +191,7 @@ int main(int argc, char** argv)
   if (sensor_name != "lidar") {
     scanTopic = "/rgbd_camera/depth/points";
   }
-  // ROS_WARN("sensor_name: %s", sensor_name.c_str());
+
   ros::Subscriber subScan = nh.subscribe<sensor_msgs::PointCloud2>(scanTopic, 2, scanHandler);
 
   ros::Publisher pubVehicleOdom = nh.advertise<nav_msgs::Odometry> ("/state_estimation", 5);
