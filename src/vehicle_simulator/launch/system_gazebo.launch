@@ -1,7 +1,6 @@
 <launch>
   <arg name="sim_name" default="gazebo"/>
   <arg name="map_name" default="garage"/>
-  <arg name="sensor_name" default="lidar"/> <!-- Only work for Gazebo, lidar or depthcam -->
   <arg name="config" default="outdoor"/>
   <arg name="stateEstimationTopic" default="/state_estimation"/>
   <arg name="depthCloudTopic" default="/registered_scan"/>
@@ -40,7 +39,6 @@
     <arg name="trackingCamZOffset" value="$(arg trackingCamZOffset)" />
     <arg name="trackingCamScale" value="$(arg trackingCamScale)" />
     <arg name="sim_name" value="$(arg sim_name)"/>
-    <arg name="sensor_name" value="$(arg sensor_name)"/>
   </include>
 
   <include file="$(find terrain_analysis)/launch/terrain_analysis.launch" />
@@ -60,7 +58,6 @@
     <arg name="map_name" value="$(arg map_name)" />
     <arg name="realtime_factor" value="$(arg realtime_factor)" />
     <arg name="sim_name" value="$(arg sim_name)"/>
-    <arg name="sensor_name" value="$(arg sensor_name)"/>
   </include>
 
   <include file="$(find visualization_tools)/launch/visualization_tools_gazebo.launch" >
