@@ -39,17 +39,31 @@ roslaunch vehicle_simulator system_gazebo.launch
 ```
 
 ## Change Environments
-For Unity, change the **Line 4** in `system_unity.launch`
+For Unity, change the **Line 4** in `src/vehicle_simulator/launch/system_unity.launch`
 
 ```bash
-  <arg name="map_name" default="SCENE_TO_USE"/>
+<arg name="map_name" default="SCENE_TO_USE"/>
+# factory, village, urban_city, town, old_town, office_building_1, office_building_2
 ```
+If you are using Gazebo, change `src/vehicle_simulator/launch/system_gazebo.launch`, change the `Line 3 `:
+
+```bash
+<arg name="map_name" default="SCENE_TO_USE"/> 
+# garage, indoor, campus, tunnel, forest
+```
+
+## Sensor Setup
+For Unity, we provide both **Lidar** and **Depth Camera** for navigation, we also provide a panoramic RGB camera with semantic segmentation for other tasks. To switch between lidar and depth camera, users can simply click the toggle switch on the upper-right side of the simulator. 
+
+<p align="center">
+  <img src="img/sensor.png" alt="Sensor Setup" width="80%"/>
+</p>
 
 For Gazebo, due to the time synchronization issue, currently we only support Lidar for locolization and mapping, but you could still use images from the depth camera for CV tasks by subscribing `/rgbd_camera/depth/points`.
 
 ## Change Config
 
-Change the **Line 5** in `system_unity.launch` or `system_gazebo.launch`
+Change the **Line 5** in `src/vehicle_simulator/launch/system_unity.launch` or `src/vehicle_simulator/launch/system_gazebo.launch`
 
 ```bash
   <arg name="config" default="CONFIG"/> # indoor or outdoor
