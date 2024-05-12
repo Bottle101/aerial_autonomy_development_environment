@@ -16,7 +16,7 @@ unzip ./src/local_planner/paths/path_files.zip -d ./src/local_planner/paths
 catkin_make
 ```
 
-Download `'factory'` of our [Unity environment models](https://drive.google.com/drive/folders/1bmxdT6Oxzt0_0tohye2br7gqTnkMaq20?usp=share_link) and unzip the files to the `'src/vehicle_simulator/mesh'` folder. 
+Download `'factory'` of our [Unity environment models](https://drive.google.com/drive/folders/1za2riVJKV5-InhgOpAdsK-Ug-bUCyeUO?usp=drive_link) and unzip the files to the `'src/vehicle_simulator/mesh'` folder. 
 
 ```bash
 # launch
