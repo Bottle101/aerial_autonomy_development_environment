@@ -1,0 +1,72 @@
+<launch>
+
+  <arg name="sim_name" default="unity"/>
+  <arg name="map_name" default="office_building_2"/>
+  <arg name="config" default="indoor"/>
+
+  <arg name="vehicleHeight" default="0.75"/>
+  <arg name="cameraOffsetZ" default="0.235"/>
+  <arg name="vehicleX" default="0"/>
+  <arg name="vehicleY" default="0"/>
+  <arg name="vehicleZ" default="1.5"/>
+  <arg name="vehicleYaw" default="0"/>
+  <arg name="checkTerrainConn" default="true"/>
+  <arg name="sensor_name" default="lidar"/>
+
+  <arg name="stateEstimationTopic" default="/vins_fusion/imu_propagate"/>
+  <arg name="depthCloudTopic" default="/registered_scan"/>
+  <arg name="depthCloudDelay" default="0"/>
+  <arg name="depthCamPitchOffset" default="0"/>
+  <arg name="depthCamXOffset" default="0"/>
+  <arg name="depthCamYOffset" default="0"/>
+  <arg name="depthCamZOffset" default="0"/>
+  <arg name="trackingCamBackward" default="false"/>
+  <arg name="trackingCamXOffset" default="0"/>
+  <arg name="trackingCamYOffset" default="0"/>
+  <arg name="trackingCamZOffset" default="0"/>
+  <arg name="trackingCamScale" default="1.0"/>
+  <arg name="realtime_factor" default="1.0"/>
+
+
+  <include file="$(find ps3joy)/launch/ps3.launch" />
+
+  <node pkg="depthImage_to_PointCloud" type="depthImage_to_PointCloud" name="depthImage_to_PointCloud" required="true" output="screen" />
+
+  <include file="$(find local_planner)/launch/local_planner_$(arg config).launch" >
+    <arg name="stateEstimationTopic" value="$(arg stateEstimationTopic)" />
+    <arg name="depthCloudTopic" value="$(arg depthCloudTopic)" />
+    <arg name="depthCloudDelay" value="$(arg depthCloudDelay)" />
+    <arg name="depthCamPitchOffset" value="$(arg depthCamPitchOffset)" />
+    <arg name="depthCamXOffset" value="$(arg depthCamXOffset)" />
+    <arg name="depthCamYOffset" value="$(arg depthCamYOffset)" />
+    <arg name="depthCamZOffset" value="$(arg depthCamZOffset)" />
+    <arg name="trackingCamBackward" value="$(arg trackingCamBackward)" />
+    <arg name="trackingCamXOffset" value="$(arg trackingCamXOffset)" />
+    <arg name="trackingCamYOffset" value="$(arg trackingCamYOffset)" />
+    <arg name="trackingCamZOffset" value="$(arg trackingCamZOffset)" />
+    <arg name="trackingCamScale" value="$(arg trackingCamScale)" />
+    <arg name="goalX" value="$(arg vehicleX)"/>
+    <arg name="goalY" value="$(arg vehicleY)"/>
+    <arg name="sim_name" value="$(arg sim_name)"/>
+  </include>
+
+  <include file="$(find terrain_analysis)/launch/terrain_analysis.launch" />
+
+  <include file="$(find terrain_analysis_ext)/launch/terrain_analysis_ext.launch" >
+    <arg name="checkTerrainConn" value="$(arg checkTerrainConn)"/>
+  </include>
+
+
+  <!-- <include file="$(find bbox_calculation)/launch/bbox_broadcast.launch" /> -->
+
+  <node name="republish_image" type="republish" pkg="image_transport" output="screen" args="compressed in:=/camera/image raw out:=/camera/image" />
+
+  <node name="republish_sem_image" type="republish" pkg="image_transport" output="screen" args="compressed in:=/camera/semantic_image raw out:=/camera/semantic_image" />
+
+  <node name="republish_depth_image" type="republish" pkg="image_transport" output="screen" args="compressed in:=/camera/depth_image raw out:=/camera/depth_image" />
+
+  <!-- <node launch-prefix="nice" pkg="rviz" type="rviz" name="rvizGA" args="-d $(find vehicle_simulator)/rviz/vehicle_simulator.rviz" respawn="true"/> -->
+
+  <node launch-prefix="nice" pkg="rviz" type="rviz" name="rvizAA" args="-d $(find vehicle_simulator)/rviz/vehicle_simulator_unity.rviz" respawn="true"/>
+
+</launch>

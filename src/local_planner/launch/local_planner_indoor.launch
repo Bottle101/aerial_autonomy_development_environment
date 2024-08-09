@@ -5,9 +5,9 @@
   <arg name="autonomyMode" default="false"/>
   <arg name="depthCloudDelay" default="0"/>
   <arg name="depthCamPitchOffset" default="0"/>
-  <arg name="depthCamXOffset" default="0"/>
-  <arg name="depthCamYOffset" default="0"/>
-  <arg name="depthCamZOffset" default="0"/>
+  <arg name="depthCamXOffset" default="0.076"/>
+  <arg name="depthCamYOffset" default="0.034"/>
+  <arg name="depthCamZOffset" default="0.044"/>
   <arg name="trackingCamBackward" default="false"/>
   <arg name="trackingCamXOffset" default="0"/>
   <arg name="trackingCamYOffset" default="0"/>
