@@ -32,6 +32,8 @@ Now, users can send a waypoint by 3 step: 1. click the 'Waypoint3D' button in RV
 ```bash
 # run a script to download environment models for Gazebo
 ./src/vehicle_simulator/mesh/download_environments.sh
+# OR download the zip directly and unzip to ./src/vehicle_simulator/mesh
+https://drive.google.com/file/d/1rbz8oPKPClhJVZZcL3R-h6qNaxGA3_5D/view?usp=sharing
 
 # launch
 source ./devel/setup.bash 
