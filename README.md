@@ -16,7 +16,7 @@ unzip ./src/local_planner/paths/path_files.zip -d ./src/local_planner/paths
 catkin_make
 ```
 
-Download `'factory'` of our [Unity environment models](https://drive.google.com/drive/folders/1za2riVJKV5-InhgOpAdsK-Ug-bUCyeUO?usp=drive_link) and unzip the files to the `'src/vehicle_simulator/mesh'` folder. 
+Download `'factory'` of our [Unity environment models](https://drive.google.com/drive/folders/1bN4Fe-mmnHQnD1PCXhwYNwr7sZV_DgvO) and unzip the files to the `'src/vehicle_simulator/mesh'` folder. 
 
 ```bash
 # launch
@@ -32,6 +32,8 @@ Now, users can send a waypoint by 3 step: 1. click the 'Waypoint3D' button in RV
 ```bash
 # run a script to download environment models for Gazebo
 ./src/vehicle_simulator/mesh/download_environments.sh
+# OR download the zip directly and unzip to ./src/vehicle_simulator/mesh
+https://drive.google.com/file/d/1rbz8oPKPClhJVZZcL3R-h6qNaxGA3_5D/view?usp=sharing
 
 # launch
 source ./devel/setup.bash 
